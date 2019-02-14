@@ -12,15 +12,31 @@ public class BAdapter extends ButtonHandler{
     }
     
     public void buttonPressed(int no){
-        if (no==7){
-            if (robot.getDriveType()==Robot.driveType.oneJoystick){
-                robot.setDriveType(Robot.driveType.twoJoyStick);
+        switch (no){
+            case 5:
+                robot.lift();
+            break;
+            case 6:
+                robot.elevatorUp();
+            break;
+            case 8:
+                robot.armRotate();
+            break;
+            case 9:
+                robot.intake();
+            break;
+            case 7:
+                if (robot.getDriveType()==Robot.driveType.oneJoystick){
+                    robot.setDriveType(Robot.driveType.twoJoyStick);
 
-            } else {
-                robot.setDriveType(Robot.driveType.oneJoystick);
-            }
-            return;
+                } else {
+                    robot.setDriveType(Robot.driveType.oneJoystick);
+                }
+            break;
+            default:
+            break;
         }
+            
     }
     public void buttonReleased(int no){
         

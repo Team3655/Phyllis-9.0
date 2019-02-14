@@ -11,6 +11,7 @@ abstract class ButtonHandler {
     public ButtonHandler(GenericHID joystick){
         this.joystick=joystick;
     }
+    /**Call during a periodic function in order to regocnize button events*/
     public void update(){
         for (int i=1; i<12; i++){
             if (joystick.getRawButtonPressed(i)){
