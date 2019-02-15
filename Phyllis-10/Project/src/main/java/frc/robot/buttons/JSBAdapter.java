@@ -16,15 +16,19 @@ public class JSBAdapter extends ButtonHandler{
     
     public void buttonPressed(int no){
         switch (no){
-            //button 1 toggle outtake
+            //button 1 hold for outtake
             case 1:
                 robot.outtake(true);
             break;
-            //button 2 toggle intake
+            //button 2 initiate intake
             case 2:
                 robot.intake(true);
             break;
-            //button 5 toggle rear lift **WILL NOT STAY ON THIS CONTROLLER**
+            //button 3 to emergency stop intake (shouldn't be necessary but just in case, in a place where it won't accidentaly be bumped)
+            case 3:
+                robot.intake(false);
+            break;
+            //button 5 hold for rear lift **WILL NOT STAY ON THIS CONTROLLER**
             case 5:
                 robot.lift(true);
             break;
@@ -37,7 +41,7 @@ public class JSBAdapter extends ButtonHandler{
                     robot.setDriveType(Robot.driveType.oneJoystick);
                 }
             break;
-            //button 8 toggle rotation of arm **WILL NOT STAY ON THIS CONTROLLER**
+            //button 8 hold rotation of arm **WILL NOT STAY ON THIS CONTROLLER**
             case 8:
                 robot.armRotate(true);
             break;
@@ -46,19 +50,16 @@ public class JSBAdapter extends ButtonHandler{
     }
     public void buttonReleased(int no){
         switch (no){
-            //button 1 toggle outtake
+            //button 1 hold for outtake
             case 1:
                 robot.outtake(false);
             break;
-            //button 2 toggle intake
-            case 2:
-                robot.intake(false);
-            break;
-            //button 5 toggle rear lift **WILL NOT STAY ON THIS CONTROLLER**
+            
+            //button 5 hold for rear lift **WILL NOT STAY ON THIS CONTROLLER**
             case 5:
                 robot.lift(false);
             break;
-            //button 8 toggle rotation of arm **WILL NOT STAY ON THIS CONTROLLER**
+            //button 8 hold for rotation of arm **WILL NOT STAY ON THIS CONTROLLER**
             case 8:
                 robot.armRotate(false);
             break;
