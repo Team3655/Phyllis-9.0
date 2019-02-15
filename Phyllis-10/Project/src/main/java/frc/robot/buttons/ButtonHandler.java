@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.robot.buttons;
 
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
