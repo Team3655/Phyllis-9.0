@@ -16,10 +16,10 @@ public class JSBAdapter extends ButtonHandler{
     public void buttonPressed(int no){
         switch (no){
             case 2:
-                robot.intake(true);
+              //  robot.intake(true);
             break;
             case 5:
-                robot.lift(true);
+             //   robot.lift(true);
             break;
             case 7:
                 if (robot.getDriveType()==Robot.driveType.oneJoystick){
@@ -30,7 +30,7 @@ public class JSBAdapter extends ButtonHandler{
                 }
             break;
             case 8:
-                robot.armRotate(true);
+              //  robot.armRotate(true);
             break;
             default:
             break;
@@ -41,13 +41,13 @@ public class JSBAdapter extends ButtonHandler{
         switch (no){
             //TODO outtake
             case 2:
-                robot.intake(false);
+              //  robot.intake(false);
             break;
             case 5:
-                robot.lift(false);
+                //robot.lift(false);
             break;
             case 8:
-                robot.armRotate(false);
+               // robot.armRotate(false);
             break;
             default:
             break;

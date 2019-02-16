@@ -36,8 +36,13 @@ public class Robot extends TimedRobot {
   private TalonSRX armRotate=new TalonSRX(23);
   private TalonSRX intakeLeft=new TalonSRX(31);
   private TalonSRX intakeRight=new TalonSRX(32);
+  private ExtendableMotor extendableElevator  = new ExtendableMotor(elevator, 0.05, 1);
+  private ExtendableMotor extendablerearLift = new ExtendableMotor(rearLift, 0.05, 1);
+  private ExtendableMotor extendablearmRotate = new ExtendableMotor(armRotate, 0.05, 1);
+  private ExtendableMotor extendableintakeLeft = new ExtendableMotor(intakeLeft, 0.05, 1);
+  private ExtendableMotor extendableintakeRight = new ExtendableMotor(intakeRight, 0.05, 1);
   @Override
-  public void robotInit() {
+  public void robotInit() {    
     leftBackCAN.follow(leftFrontCAN);
     rightBackCAN.follow(rightFrontCAN);
     robot = new DifferentialDrive(leftFrontCAN,rightFrontCAN);
@@ -53,6 +58,9 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     //driving arcade
     robot.arcadeDrive(rightStick.getY()*-.75, xStick.getX()*.75);
+    this.extendableElevator.stepMotor(leftStick.getRawButton(1), leftStick.getRawButton(2));
+    this.extendablerearLift.stepMotor(leftStick.getRawButton(3), leftStick.getRawButton(4));
+    this.extendablearmRotate.stepMotor(leftStick.getRawButton(5), leftStick.getRawButton(6));
     if (!(jsbAdapter.equals(null)&&tsbAdapter.equals(null))){
       jsbAdapter.update();
       tsbAdapter.update();
@@ -89,7 +97,7 @@ public class Robot extends TimedRobot {
   }
   public void elevatorOff(){
     elevator.set(ControlMode.PercentOutput,0);
-  }
+  }/*
   public void lift(boolean on){
     if (on){
       rearLift.set(ControlMode.PercentOutput, .3);
@@ -113,8 +121,8 @@ public class Robot extends TimedRobot {
       intakeLeft.set(ControlMode.PercentOutput,0);
       intakeRight.set(ControlMode.PercentOutput,0);
     }
-    
-  }
+
+  }*/
   /**
    * Prints debug information to console
    */
