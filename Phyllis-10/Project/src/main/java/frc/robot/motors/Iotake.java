@@ -18,7 +18,8 @@ public class Iotake {
     public Iotake(){
         left=new TalonSRX(31);
         right=new TalonSRX(32);
-        defaultDemand = .3;
+        right.setInverted(true);
+        defaultDemand = .75;
         state = State.off;
     }
     /**Constructs a new intake/outtake system with default motor ids and specified <code>defaultDemand</code>
@@ -126,7 +127,11 @@ public class Iotake {
         return state;
     }
     public double getAvgMotorOutputVoltage(){
-        return (left.getMotorOutputVoltage()+right.getMotorOutputVoltage())/2;
+        return (left.getMotorOutputVoltage()+(-1*right.getMotorOutputVoltage()))/2;
+    }
+    //testing function
+    public double getMotorOutputVoltageLeft(){
+        return left.getMotorOutputVoltage();
     }
     public double getActivationTime(){
         return activationTime;

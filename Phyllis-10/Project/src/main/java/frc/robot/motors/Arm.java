@@ -3,75 +3,71 @@ package frc.robot.motors;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
-import edu.wpi.first.wpilibj.PIDController;
-
-public class Elevator extends TalonSRX {
+public class Arm extends TalonSRX{
     public static enum State {activeUp,activeDown,off};
     private State state;
     private double defaultDemand;
     private double activationTime=0;
-    /**Constructs a new elevator with an id of 21 and a default demand percent of .75
+    /**Constructs a new arm with an id of 21 and a default demand percent of .75
      * 
      */
-    public Elevator(){
-        super(21);
+    public Arm(){
+        super(23);
         defaultDemand = .75;
         state = State.off;
     }
-    /**Constructs a new elevator with an id of <code>id</code> and a default demand percent of .75
+    /**Constructs a new arm with an id of <code>id</code> and a default demand percent of .75
      * 
      * @param id
      */
-    public Elevator(int id){
+    public Arm(int id){
         super(id);
         defaultDemand = .75;
         state = State.off;
     }
-    /**Constructs a new elevator with an id of 21 and a default demand percent of <code>defaultDemand</code>
+    /**Constructs a new arm with an id of 21 and a default demand percent of <code>defaultDemand</code>
      * 
      * @param defaultDemand
      */
-    public Elevator(double defaultDemand){
-        super(21);
+    public Arm(double defaultDemand){
+        super(23);
         this.defaultDemand=Math.abs(defaultDemand);
         state = State.off;
     }
-    /**Constructs a new elevator with an id of <code>id</code> and a default demand percent of <code>defaultDemand</code>
+    /**Constructs a new arm with an id of <code>id</code> and a default demand percent of <code>defaultDemand</code>
      * 
      * @param id
      * @param defaultDemand
      */
-    public Elevator(int id, double defaultDemand){
+    public Arm(int id, double defaultDemand){
         super(id);
         this.defaultDemand=Math.abs(defaultDemand);
         state = State.off;
     }
-    /**Moves elevator up at <code>defaultDemand</code> (.75 at default) percent demand
+    /**Moves arm up at <code>defaultDemand</code> (.75 at default) percent demand
      * 
      */
     public void up(){
         if (!(state==State.activeUp)){
             set(ControlMode.PercentOutput, defaultDemand);
             state = State.activeUp;
-            setSensorPhase(true);
             activationTime = System.currentTimeMillis();
         }
     }
-    /**Moves elevator up
+    /**Moves arm up
      * Uses percent output for control mode of set function
-     * The absolute value of <code>demand</code> is used (Elevator will only move up)
+     * The absolute value of <code>demand</code> is used (Arm will only move up)
      * @param demand
      */
     public void up(double demand){
         if (!(state==State.activeUp)){
             set(ControlMode.PercentOutput, Math.abs(demand));
             state = State.activeUp;
-            setSensorPhase(true);
             activationTime = System.currentTimeMillis();
         }
     }
-    /**Moves elevator up with control mode <code>Mode</code>
-     * The absolute value of <code>demand</code> is used (Elevator will only move up)
+    /**Moves arm up with control mode <code>Mode</code>
+     * The absolute value of <code>demand</code> is used (Arm will only move up)
      * @param demand
      * @param Mode
      */
@@ -79,36 +75,33 @@ public class Elevator extends TalonSRX {
         if (!(state==State.activeUp)){
             set(Mode, Math.abs(demand));
             state=State.activeUp;
-            setSensorPhase(true);
             activationTime = System.currentTimeMillis();
         }
     }
-    /**Moves elevator down at <code>defaultDemand</code> (.75 at default) percent demand
+    /**Moves arm down at <code>defaultDemand</code> (.75 at default) percent demand
      * 
      */
     public void down(){
         if (!(state==State.activeDown)){
             set(ControlMode.PercentOutput,-1*Math.abs(defaultDemand));
             state = State.activeDown;
-            setSensorPhase(false);
             activationTime = System.currentTimeMillis();
         }
     }
-    /**Moves elevator down
+    /**Moves arm down
      * Uses percent output for control mode of set function
-     * The negative absolute value of <code>demand</code> is used (Elevator will only move down)
+     * The negative absolute value of <code>demand</code> is used (Arm will only move down)
      * @param demand
      */
     public void down(double demand){
         if (!(state==State.activeDown)){
             set(ControlMode.PercentOutput,-1*Math.abs(demand));
             state = State.activeDown;
-            setSensorPhase(false);
             activationTime = System.currentTimeMillis();
         }
     }
-    /**Moves elevator down with control mode <code>Mode</code>
-     * The negative absolute value of <code>demand</code> is used (Elevator will only move down)
+    /**Moves arm down with control mode <code>Mode</code>
+     * The negative absolute value of <code>demand</code> is used (Arm will only move down)
      * @param demand
      * @param Mode
      */
@@ -116,16 +109,12 @@ public class Elevator extends TalonSRX {
         if (!(state==State.activeDown)){
             set(Mode, -1*Math.abs(demand));
             state = State.activeDown;
-            setSensorPhase(false);
             activationTime = System.currentTimeMillis();
         }
     }
     public void off(){
         set(ControlMode.PercentOutput,0);
         state = State.off;
-    }
-    public void moveToPos(){
-        
     }
     public double getActivationTime(){
         return activationTime;

@@ -7,11 +7,15 @@
 
 package frc.robot;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import frc.robot.buttons.*;
+import frc.robot.motors.Arm;
 import frc.robot.motors.Elevator;
+import frc.robot.motors.ExtendableMotor;
 import frc.robot.motors.Iotake;
+import frc.robot.motors.Lift;
 
 import com.revrobotics.*;
 import com.ctre.phoenix.motorcontrol.*;
@@ -20,6 +24,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 public class Robot extends TimedRobot {
 
   public static enum driveType {twoJoyStick,oneJoystick};
+  private final double voltageCutoff=8.5;
   private DifferentialDrive robot;
   private Joystick leftStick;
   private Joystick rightStick;
@@ -27,23 +32,22 @@ public class Robot extends TimedRobot {
   private Joystick xStick;
   private JSBAdapter jsbAdapter;
   private TSBAdapter tsbAdapter;
+  private Solenoid solenoid;
+  private Compressor compressor;
   private CANSparkMax leftFrontCAN=new CANSparkMax(10,CANSparkMaxLowLevel.MotorType.kBrushless);
   private CANSparkMax leftBackCAN=new CANSparkMax(11,CANSparkMaxLowLevel.MotorType.kBrushless);
   private CANSparkMax rightFrontCAN=new CANSparkMax(13,CANSparkMaxLowLevel.MotorType.kBrushless);
   private CANSparkMax rightBackCAN=new CANSparkMax(12,CANSparkMaxLowLevel.MotorType.kBrushless);
   private Elevator elevator=new Elevator();
   private Iotake iotake=new Iotake();//Iotake is intake/outtake system
-  private TalonSRX rearLift=new TalonSRX(22);
-  private TalonSRX armRotate=new TalonSRX(23);
+  private Arm arm=new Arm();
+  private Lift rearLift=new Lift();
   private TalonSRX intakeLeft=new TalonSRX(31);
   private TalonSRX intakeRight=new TalonSRX(32);
-  private ExtendableMotor extendableElevator  = new ExtendableMotor(elevator, 0.05, 1);
-  private ExtendableMotor extendablerearLift = new ExtendableMotor(rearLift, 0.05, 1);
-  private ExtendableMotor extendablearmRotate = new ExtendableMotor(armRotate, 0.05, 1);
-  private ExtendableMotor extendableintakeLeft = new ExtendableMotor(intakeLeft, 0.05, 1);
   private ExtendableMotor extendableintakeRight = new ExtendableMotor(intakeRight, 0.05, 1);
   @Override
-  public void robotInit() {    
+  public void robotInit() { 
+    CameraServer.getInstance().startAutomaticCapture();  
     leftBackCAN.follow(leftFrontCAN);
     rightBackCAN.follow(rightFrontCAN);
     robot = new DifferentialDrive(leftFrontCAN,rightFrontCAN);
@@ -53,6 +57,8 @@ public class Robot extends TimedRobot {
     tractorPanel = new Joystick(2);
     jsbAdapter=new JSBAdapter(rightStick, this);
     tsbAdapter=new TSBAdapter(tractorPanel, this);
+    solenoid=new Solenoid(0); //DOUBLE CHECK IDS
+    compressor=new Compressor(0); //DOUBLE CHECK IDS
   }
 
 
@@ -60,9 +66,7 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     //driving arcade
     robot.arcadeDrive(rightStick.getY()*-.75, xStick.getX()*.75);
-    this.extendableElevator.stepMotor(leftStick.getRawButton(1), leftStick.getRawButton(2));
-    this.extendablerearLift.stepMotor(leftStick.getRawButton(3), leftStick.getRawButton(4));
-    this.extendablearmRotate.stepMotor(leftStick.getRawButton(5), leftStick.getRawButton(6));
+    
     //update button inputs
     if (!(jsbAdapter.equals(null)&&tsbAdapter.equals(null))){
       jsbAdapter.update();
@@ -70,16 +74,26 @@ public class Robot extends TimedRobot {
     }
     //stop elevator at voltage spike
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation 
-    if (elevator.getMotorOutputVoltage()>7 && System.currentTimeMillis()>elevator.getActivationTime()+500){
+    if (!(elevator.getState()==Elevator.State.off)&&Math.abs(elevator.getMotorOutputVoltage())<voltageCutoff && System.currentTimeMillis()>elevator.getActivationTime()+500){
       elevatorOff();
-      System.out.println("Elevator disabled from high output voltage");
+      System.out.println("Elevator disabled from low output voltage");
+    }
+    if (!(rearLift.getState()==Lift.State.off)&&Math.abs(rearLift.getMotorOutputVoltage())<voltageCutoff && System.currentTimeMillis()>rearLift.getActivationTime()+500){
+      liftOff();
+      System.out.println("Rearlift disabled from low output voltage");
+    }
+    if (!(arm.getState()==Arm.State.off)&&Math.abs(arm.getMotorOutputVoltage())<voltageCutoff && System.currentTimeMillis()>arm.getActivationTime()+500){
+      armOff();
+      System.out.println("Arm disabled from low output voltage");
     }
     //stop intake at voltage spike
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation
-    if (iotake.getAvgMotorOutputVoltage()>7 && System.currentTimeMillis()>iotake.getActivationTime()+500){
-      outtake(false);
-      System.out.println("Outtake disabled from high output voltage");
-    } 
+    //no abs value needed for this one because outtake doesn't need to be ended at a voltage spike
+    if (iotake.getState()==Iotake.State.activeIn&&iotake.getAvgMotorOutputVoltage()<voltageCutoff && System.currentTimeMillis()>iotake.getActivationTime()+500){
+      intake(false);
+      System.out.println("Outtake disabled from low output voltage");
+    }
+    //debug();
   }
 
 
@@ -107,8 +121,16 @@ public class Robot extends TimedRobot {
       return driveType.twoJoyStick;
     }
   }
-
-
+  /**Activates/deactivates solenoid to fire hatch*/
+  public void fireHatch(boolean on){
+    solenoid.set(on);
+  }
+  /**Toggle compressor
+   * 
+   */
+  public void toggleCompressor(){
+    compressor.setClosedLoopControl(!compressor.enabled());
+  }
   /**Moves elevator up
    * 
    */
@@ -134,27 +156,29 @@ public class Robot extends TimedRobot {
    * 
    * @param on
    */
-  public void lift(boolean on){
-    if (on){
-      rearLift.set(ControlMode.PercentOutput, .3);
-    } else {
-      rearLift.set(ControlMode.PercentOutput,0);
-    }
+  public void liftUp(){
+    rearLift.up();;
+  }
+  public void liftDown(){
+    rearLift.down();
+  }
+  public void liftOff(){
+    rearLift.off();
   }
 
-
-  /**Sets arm rotation to either be on or off
+  /**Moves arm up
    * 
-   * @param on
    */
-  public void armRotate(boolean on){
-    if (on){
-      armRotate.set(ControlMode.PercentOutput, .3);
-    } else {
-      armRotate.set(ControlMode.PercentOutput,0);
-    }
+  public void armUp(){
+    arm.up();
   }
 
+  public void armDown(){
+    arm.down();
+  }
+  public void armOff(){
+    arm.off();
+  }
 
   /**Sets outtake to either be on or off
    * 

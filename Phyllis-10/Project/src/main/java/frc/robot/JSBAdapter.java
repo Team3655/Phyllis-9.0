@@ -1,8 +1,7 @@
-package frc.robot.buttons;
+package frc.robot;
 
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
-import frc.robot.Robot;
 import frc.robot.Robot.driveType;
 /**
  * Button handler for right joystick
@@ -16,19 +15,12 @@ public class JSBAdapter extends ButtonHandler{
     
     public void buttonPressed(int no){
         switch (no){
-            //button 1 hold for outtake
             case 1:
-                robot.outtake(true);
-            break;
-            //button 2 initiate intake
-            case 2:
                 robot.intake(true);
             break;
-            //button 3 to emergency stop intake (shouldn't be necessary but just in case, in a place where it won't accidentaly be bumped)
-            case 3:
-                robot.intake(false);
+            case 2:
+                robot.outtake(true);
             break;
-            //button 7 switch drive type (one joystick/two joystick arcade)
             case 7:
                 if (robot.getDriveType()==Robot.driveType.oneJoystick){
                     robot.setDriveType(Robot.driveType.twoJoyStick);
@@ -42,9 +34,8 @@ public class JSBAdapter extends ButtonHandler{
     }
     public void buttonReleased(int no){
         switch (no){
-            //button 1 hold for outtake
-            case 1:
-                robot.outtake(false);
+            case 2:
+              robot.outtake(false);
             break;
         }
     }
