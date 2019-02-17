@@ -1,6 +1,7 @@
 package frc.robot.motors;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 public class Lift extends TalonSRX{
@@ -12,16 +13,52 @@ public class Lift extends TalonSRX{
         super(22);
         defaultDemand=.75;
         state=State.off;
+        configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+        setSensorPhase(false);
+        setSelectedSensorPosition(0);
+        configNominalOutputForward(0);
+		configNominalOutputReverse(0);
+		configPeakOutputForward(defaultDemand);
+        configPeakOutputReverse(-defaultDemand);
+        configAllowableClosedloopError(0, 0);
+        config_kF(2, 0.0);
+		config_kP(2, .15);
+		config_kI(2, 0.0);
+		config_kD(2, 1.0);
     }
     public Lift(int id){
         super(id);
         defaultDemand=.75;
         state=State.off;
+        configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+        setSensorPhase(false);
+        setSelectedSensorPosition(0);
+        configNominalOutputForward(0);
+		configNominalOutputReverse(0);
+		configPeakOutputForward(defaultDemand);
+        configPeakOutputReverse(-defaultDemand);
+        configAllowableClosedloopError(0, 0);
+        config_kF(2, 0.0);
+		config_kP(2, .15);
+		config_kI(2, 0.0);
+		config_kD(2, 1.0);
     }
     public Lift(int id, double defaultDemand){
         super(id);
         this.defaultDemand=defaultDemand;
         state=State.off;
+        configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+        setSensorPhase(false);
+        setSelectedSensorPosition(0);
+        configNominalOutputForward(0);
+		configNominalOutputReverse(0);
+		configPeakOutputForward(defaultDemand);
+        configPeakOutputReverse(-defaultDemand);
+        configAllowableClosedloopError(0, 0);
+        config_kF(2, 0.0);
+		config_kP(2, .15);
+		config_kI(2, 0.0);
+		config_kD(2, 1.0);
     }
     /**Moves rear lift up at <code>defaultDemand</code> (.75 at default) percent demand
      * 
@@ -94,6 +131,46 @@ public class Lift extends TalonSRX{
     public void off(){
         set(ControlMode.PercentOutput,0);
         state = State.off;
+    }
+    public void moveToPos(int pos){
+        configPeakOutputForward(defaultDemand);
+        configPeakOutputReverse(-defaultDemand);
+        if (pos>getSelectedSensorPosition()){
+            state=State.activeUp;
+        } else if(pos<getSelectedSensorPosition()){
+            state=State.activeDown;
+        } else {
+            state=State.off;
+        }
+        set(ControlMode.Position,pos);
+    }
+    public void moveToPos(double pos){
+        configPeakOutputForward(defaultDemand);
+        configPeakOutputReverse(-defaultDemand);
+        if (pos>getSelectedSensorPosition()){
+            state=State.activeUp;
+        } else if(pos<getSelectedSensorPosition()){
+            state=State.activeDown;
+        } else {
+            state=State.off;
+        }
+        set(ControlMode.Position,pos);
+    }
+    public void moveToPos(double pos,double demand){
+        configPeakOutputForward(demand);
+        configPeakOutputReverse(-demand);
+        if (pos>getSelectedSensorPosition()){
+            state=State.activeUp;
+        } else if(pos<getSelectedSensorPosition()){
+            state=State.activeDown;
+        } else {
+            state=State.off;
+        }
+        set(ControlMode.Position,pos);
+    }
+    public void printSensorPosition(){
+        System.out.println("Sensor Position: "+getSelectedSensorPosition());
+        System.out.println("Target Position: "+getClosedLoopTarget());
     }
     public double getActivationTime(){
         return activationTime;

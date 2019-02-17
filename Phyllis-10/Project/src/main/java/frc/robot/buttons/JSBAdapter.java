@@ -18,15 +18,15 @@ public class JSBAdapter extends ButtonHandler{
         switch (no){
             //button 1 hold for outtake
             case 1:
-                robot.outtake(true);
+                robot.outtake();
             break;
             //button 2 initiate intake
             case 2:
-                robot.intake(true);
+                robot.intake();
             break;
             //button 3 to emergency stop intake (shouldn't be necessary but just in case, in a place where it won't accidentaly be bumped)
             case 3:
-                robot.intake(false);
+                robot.iotakeOff();
             break;
             //button 7 switch drive type (one joystick/two joystick arcade)
             case 7:
@@ -44,7 +44,7 @@ public class JSBAdapter extends ButtonHandler{
         switch (no){
             //button 1 hold for outtake
             case 1:
-                robot.outtake(false);
+                robot.iotakeOff();
             break;
         }
     }

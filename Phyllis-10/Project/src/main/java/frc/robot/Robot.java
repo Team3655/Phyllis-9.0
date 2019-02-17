@@ -10,6 +10,7 @@ package frc.robot;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.buttons.*;
 import frc.robot.motors.Arm;
 import frc.robot.motors.Elevator;
@@ -22,6 +23,9 @@ import com.ctre.phoenix.motorcontrol.*;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 public class Robot extends TimedRobot {
+  
+  
+  //CLASS VARIABLES
 
   public static enum driveType {twoJoyStick,oneJoystick};
   private final double voltageCutoff=8.5;
@@ -45,6 +49,10 @@ public class Robot extends TimedRobot {
   private TalonSRX intakeLeft=new TalonSRX(31);
   private TalonSRX intakeRight=new TalonSRX(32);
   private ExtendableMotor extendableintakeRight = new ExtendableMotor(intakeRight, 0.05, 1);
+  
+
+  //ROBOT ESSENTIAL METHODS
+
   @Override
   public void robotInit() { 
     CameraServer.getInstance().startAutomaticCapture();  
@@ -72,11 +80,11 @@ public class Robot extends TimedRobot {
       jsbAdapter.update();
       tsbAdapter.update();
     }
-    //stop elevator at voltage spike
+    //stop elevator at voltage dip
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation 
-    if (!(elevator.getState()==Elevator.State.off)&&Math.abs(elevator.getMotorOutputVoltage())<voltageCutoff && System.currentTimeMillis()>elevator.getActivationTime()+500){
+    if (!(elevator.getState()==Elevator.State.off)&&Math.abs(elevator.getOutputCurrent())>40 && System.currentTimeMillis()>elevator.getActivationTime()+500){
       elevatorOff();
-      System.out.println("Elevator disabled from low output voltage");
+      System.out.println("Elevator disabled from high output current");
     }
     if (!(rearLift.getState()==Lift.State.off)&&Math.abs(rearLift.getMotorOutputVoltage())<voltageCutoff && System.currentTimeMillis()>rearLift.getActivationTime()+500){
       liftOff();
@@ -86,16 +94,18 @@ public class Robot extends TimedRobot {
       armOff();
       System.out.println("Arm disabled from low output voltage");
     }
-    //stop intake at voltage spike
+    //stop intake at voltage dip
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation
     //no abs value needed for this one because outtake doesn't need to be ended at a voltage spike
     if (iotake.getState()==Iotake.State.activeIn&&iotake.getAvgMotorOutputVoltage()<voltageCutoff && System.currentTimeMillis()>iotake.getActivationTime()+500){
-      intake(false);
+      iotakeOff();
       System.out.println("Outtake disabled from low output voltage");
     }
-    //debug();
+    debug();
   }
 
+
+  //DRIVE TYPE
 
   /**Set drive type e.g. <code>driveType.oneJoystick</code> for one joystick arcade drive
    * 
@@ -121,6 +131,10 @@ public class Robot extends TimedRobot {
       return driveType.twoJoyStick;
     }
   }
+
+
+  //PNUEMATICS
+
   /**Activates/deactivates solenoid to fire hatch*/
   public void fireHatch(boolean on){
     solenoid.set(on);
@@ -131,6 +145,10 @@ public class Robot extends TimedRobot {
   public void toggleCompressor(){
     compressor.setClosedLoopControl(!compressor.enabled());
   }
+
+
+  //ELEVATOR CONTROL METHODS
+
   /**Moves elevator up
    * 
    */
@@ -145,6 +163,32 @@ public class Robot extends TimedRobot {
     elevator.down();
   }
 
+  public void elevatorTop(){
+    elevator.moveToPos(Preferences.getInstance().getDouble("elevatorTop",0),.1);
+  }
+
+  public void elevatorBottom(){
+    elevator.moveToPos(Preferences.getInstance().getDouble("elevatorBottom",0),.1);
+  }
+  
+  /**Moves elevator to middle possition
+   *
+   * <--NEEDS TO HAVE VALUE TUNED-->
+   * 
+   */
+  public void elevatorMid(){
+    elevator.moveToPos(Preferences.getInstance().getDouble("elevatorMid",0),.1);
+  }
+  
+  /**Moves elevator to deck position
+   * 
+   * <--NEEDS TO HAVE VALUE TUNED-->
+   * 
+   */
+  public void elevatorDeck(){
+    elevator.moveToPos(Preferences.getInstance().getDouble("elevatorDeck",0),.1);
+  }
+
   /**turns off elevator
    * 
    */
@@ -152,19 +196,41 @@ public class Robot extends TimedRobot {
     elevator.off();
   }
 
-  /**Sets lift to either be on or off
+
+  //LIFT CONTROL METHODS
+
+  /**Moves lift up
    * 
-   * @param on
    */
   public void liftUp(){
-    rearLift.up();;
+    rearLift.up();
   }
+  
+  /**Moves lift down
+   * 
+   */
   public void liftDown(){
     rearLift.down();
   }
+  /**Moves lift to raised position
+   * 
+   */
+  public void liftRaise(){
+    rearLift.moveToPos(Preferences.getInstance().getDouble("liftRaise",-500),.3);
+  }
+
+  public void liftLower(){
+    rearLift.moveToPos(Preferences.getInstance().getDouble("liftLower",-1000),.3);
+  }
+  /**Turns lift off
+   * 
+   */
   public void liftOff(){
     rearLift.off();
   }
+
+
+  //ARM CONTROL METHODS
 
   /**Moves arm up
    * 
@@ -176,40 +242,74 @@ public class Robot extends TimedRobot {
   public void armDown(){
     arm.down();
   }
+
+  public void armSit(){
+    arm.moveToPos(Preferences.getInstance().getDouble("armSit",0),.3);
+  }
+
+  public void armDeck(){
+    arm.moveToPos(Preferences.getInstance().getDouble("armDeck",0),.3);
+  }
+
+  public void armHatch(){
+    arm.moveToPos(Preferences.getInstance().getDouble("armHatch",0),.3);
+  }
+
+  public void armBall(){
+    arm.moveToPos(Preferences.getInstance().getDouble("armBall",0),.3);
+  }
+
   public void armOff(){
     arm.off();
   }
+  
 
-  /**Sets outtake to either be on or off
+  //IOTAKE CONTROL METHODS
+
+  /**Activates outtake
    * 
    */
-  public void outtake(boolean on){
-    if (on){
-      iotake.outtake();
-    } else {
-      iotake.off();
-    }
+  public void outtake(){
+    iotake.outtake();
   }
 
-  /**Sets intake to either be on or off
+  /**Initiates intake
    * 
    */
-  public void intake(boolean on){
-    if (on){
-      iotake.intake();
-    } else {
-      iotake.off();
-    }
-    
+  public void intake(){
+    iotake.intake();
   }
 
+  /**Turns iotake off
+   * 
+   */
+  public void iotakeOff(){
+    iotake.off();
+  }
+
+
+  //OTHER METHODS
+
+  /**Prints sensor positions for all monitored motors
+   * 
+   */
+  public void printSensorPositions(){
+    System.out.println("<--ELEVATOR-->");
+    elevator.printSensorPosition();
+    System.out.println("<--REAR LIFT-->");
+    rearLift.printSensorPosition();
+    System.out.println("<--ARM-->");
+    arm.printSensorPosition();
+  }
 
   /**
    * Prints debug information to console, currently only for debugging purposes (cannot invoke with robot IO)
    * Might make more detailed and advanced debugging methods later, also will probably make write to a log file to better examen debug info (kind of hard to analize a periodically changing console)
    */
   private void debug(){
-    System.out.println(elevator.getMotorOutputVoltage());
+    //printSensorPositions();
+    //System.out.println("Test:"+Preferences.getInstance().getDouble("Test", 0));
+    System.out.println(elevator.getOutputCurrent());
     /*System.out.println("X:"+leftStick.getX()); //not necessary right now 
     System.out.println("Y: "+leftStick.getY());
     System.out.println("Left: "+leftFrontCAN.getAppliedOutput());

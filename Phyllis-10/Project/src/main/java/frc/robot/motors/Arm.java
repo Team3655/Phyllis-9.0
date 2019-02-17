@@ -1,6 +1,7 @@
 package frc.robot.motors;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 public class Arm extends TalonSRX{
@@ -15,6 +16,18 @@ public class Arm extends TalonSRX{
         super(23);
         defaultDemand = .75;
         state = State.off;
+        configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+        setSensorPhase(false);
+        setSelectedSensorPosition(0);
+        configNominalOutputForward(0);
+		configNominalOutputReverse(0);
+		configPeakOutputForward(defaultDemand);
+        configPeakOutputReverse(-defaultDemand);
+        configAllowableClosedloopError(0, 0);
+        config_kF(0, 0.0);
+		config_kP(0, .15);
+		config_kI(0, 0.0);
+		config_kD(0, 1.0);
     }
     /**Constructs a new arm with an id of <code>id</code> and a default demand percent of .75
      * 
@@ -24,6 +37,18 @@ public class Arm extends TalonSRX{
         super(id);
         defaultDemand = .75;
         state = State.off;
+        configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+        setSensorPhase(false);
+        setSelectedSensorPosition(0);
+        configNominalOutputForward(0);
+		configNominalOutputReverse(0);
+		configPeakOutputForward(defaultDemand);
+        configPeakOutputReverse(-defaultDemand);
+        configAllowableClosedloopError(0, 0);
+        config_kF(1, 0.0);
+		config_kP(1, .15);
+		config_kI(1, 0.0);
+		config_kD(1, 1.0);
     }
     /**Constructs a new arm with an id of 21 and a default demand percent of <code>defaultDemand</code>
      * 
@@ -33,6 +58,18 @@ public class Arm extends TalonSRX{
         super(23);
         this.defaultDemand=Math.abs(defaultDemand);
         state = State.off;
+        configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+        setSensorPhase(false);
+        setSelectedSensorPosition(0);
+        configNominalOutputForward(0);
+		configNominalOutputReverse(0);
+		configPeakOutputForward(defaultDemand);
+        configPeakOutputReverse(-defaultDemand);
+        configAllowableClosedloopError(0, 0);
+        config_kF(1, 0.0);
+		config_kP(1, .15);
+		config_kI(1, 0.0);
+		config_kD(1, 1.0);
     }
     /**Constructs a new arm with an id of <code>id</code> and a default demand percent of <code>defaultDemand</code>
      * 
@@ -43,6 +80,18 @@ public class Arm extends TalonSRX{
         super(id);
         this.defaultDemand=Math.abs(defaultDemand);
         state = State.off;
+        configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+        setSensorPhase(false);
+        setSelectedSensorPosition(0);
+        configNominalOutputForward(0);
+		configNominalOutputReverse(0);
+		configPeakOutputForward(defaultDemand);
+        configPeakOutputReverse(-defaultDemand);
+        configAllowableClosedloopError(0, 0);
+        config_kF(1, 0.0);
+		config_kP(1, .15);
+		config_kI(1, 0.0);
+		config_kD(1, 1.0);
     }
     /**Moves arm up at <code>defaultDemand</code> (.75 at default) percent demand
      * 
@@ -115,6 +164,46 @@ public class Arm extends TalonSRX{
     public void off(){
         set(ControlMode.PercentOutput,0);
         state = State.off;
+    }
+    public void moveToPos(int pos){
+        configPeakOutputForward(defaultDemand);
+        configPeakOutputReverse(-defaultDemand);
+        if (pos*4096>getSelectedSensorPosition()){
+            state=State.activeUp;
+        } else if(pos*4096<getSelectedSensorPosition()){
+            state=State.activeDown;
+        } else {
+            state=State.off;
+        }
+        set(ControlMode.Position,pos*4096);
+    }
+    public void moveToPos(double pos){
+        configPeakOutputForward(defaultDemand);
+        configPeakOutputReverse(-defaultDemand);
+        if (pos*4096>getSelectedSensorPosition()){
+            state=State.activeUp;
+        } else if(pos*4096<getSelectedSensorPosition()){
+            state=State.activeDown;
+        } else {
+            state=State.off;
+        }
+        set(ControlMode.Position,pos*4096);
+    }
+    public void moveToPos(double pos,double demand){
+        configPeakOutputForward(demand);
+        configPeakOutputReverse(-demand);
+        if (pos*4096>getSelectedSensorPosition()){
+            state=State.activeUp;
+        } else if(pos*4096<getSelectedSensorPosition()){
+            state=State.activeDown;
+        } else {
+            state=State.off;
+        }
+        set(ControlMode.Position,pos*4096);
+    }
+    public void printSensorPosition(){
+        System.out.println("Sensor Position: "+getSelectedSensorPosition());
+        System.out.println("Target Position: "+getClosedLoopTarget());
     }
     public double getActivationTime(){
         return activationTime;
