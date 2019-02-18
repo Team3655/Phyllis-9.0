@@ -7,7 +7,7 @@ import frc.robot.motors.Elevator;
  * 
  */
 public class TSBAdapter extends ButtonHandler{
-    Robot robot;
+    private Robot robot;
     public TSBAdapter(Joystick tractorPanel, Robot robot){
         super(tractorPanel,28); //button 28 is the red button on the joystick and button 27 is press on wheel (those buttons aren't labled on the panel)
         this.robot=robot;
@@ -122,6 +122,9 @@ public class TSBAdapter extends ButtonHandler{
             break;
             case 12:
                 robot.armOff();
+            break;
+            case 17:
+                robot.iotakeOff();
             break;
             case 18:
                 robot.iotakeOff();

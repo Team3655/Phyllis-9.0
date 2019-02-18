@@ -1,6 +1,7 @@
 package frc.robot.motors;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 public class Iotake {
@@ -18,6 +19,8 @@ public class Iotake {
     public Iotake(){
         left=new TalonSRX(31);
         right=new TalonSRX(32);
+        left.setNeutralMode(NeutralMode.Brake);
+        right.setNeutralMode(NeutralMode.Brake);
         right.setInverted(true);
         defaultDemand = .75;
         state = State.off;
@@ -30,6 +33,8 @@ public class Iotake {
     public Iotake(double defaultDemand){
         left=new TalonSRX(31);
         right=new TalonSRX(32);
+        left.setNeutralMode(NeutralMode.Brake);
+        right.setNeutralMode(NeutralMode.Brake);
         this.defaultDemand = defaultDemand;
         state = State.off;
     }
@@ -42,6 +47,8 @@ public class Iotake {
     public Iotake(int idLeft,int idRight){
         left = new TalonSRX(idLeft);
         right = new TalonSRX(idRight);
+        left.setNeutralMode(NeutralMode.Brake);
+        right.setNeutralMode(NeutralMode.Brake);
         defaultDemand = .3;
         state = State.off;
     }
@@ -54,6 +61,8 @@ public class Iotake {
     public Iotake(int idLeft,int idRight,double defaultDemand){
         left = new TalonSRX(idLeft);
         right = new TalonSRX(idRight);
+        left.setNeutralMode(NeutralMode.Brake);
+        right.setNeutralMode(NeutralMode.Brake);
         this.defaultDemand=defaultDemand;
         state = State.off;
     }
@@ -61,7 +70,7 @@ public class Iotake {
     public void intake(){
         if (!(state==State.activeIn)){
             //necessary so pushing button multiple times doesn't screw up activation time
-            left.set(ControlMode.PercentOutput,Math.abs(defaultDemand));
+            left.set(ControlMode.PercentOutput,-1*Math.abs(defaultDemand));
             right.set(ControlMode.PercentOutput,Math.abs(defaultDemand));
             activationTime=System.currentTimeMillis();
             state=State.activeIn;
@@ -70,7 +79,7 @@ public class Iotake {
     public void intake(double demand){
         //necessary so pushing button multiple times doesn't screw up activation time
         if (!(state==State.activeIn)){
-            left.set(ControlMode.PercentOutput,Math.abs(demand));
+            left.set(ControlMode.PercentOutput,-1*Math.abs(demand));
             right.set(ControlMode.PercentOutput,Math.abs(demand));
             activationTime=System.currentTimeMillis();
             state=State.activeIn;
@@ -79,7 +88,7 @@ public class Iotake {
     public void intake(ControlMode Mode, double demand){
         //necessary so pushing button multiple times doesn't screw up activation time
         if (!(state==State.activeIn)){
-            left.set(Mode,Math.abs(demand));
+            left.set(Mode,-1*Math.abs(demand));
             right.set(Mode,Math.abs(demand));
             activationTime=System.currentTimeMillis();
             state=State.activeIn;
@@ -88,7 +97,7 @@ public class Iotake {
     public void outtake(){
         //necessary so pushing button multiple times doesn't screw up activation time
         if (!(state==State.activeOut)){
-            left.set(ControlMode.PercentOutput,-1*Math.abs(defaultDemand));
+            left.set(ControlMode.PercentOutput,Math.abs(defaultDemand));
             right.set(ControlMode.PercentOutput,-1*Math.abs(defaultDemand));
             activationTime=System.currentTimeMillis();
             state=State.activeOut;
@@ -97,7 +106,7 @@ public class Iotake {
     public void outtake(double demand){
         //necessary so pushing button multiple times doesn't screw up activation time
         if (!(state==State.activeOut)){
-            left.set(ControlMode.PercentOutput,-1*Math.abs(demand));
+            left.set(ControlMode.PercentOutput,Math.abs(demand));
             right.set(ControlMode.PercentOutput,-1*Math.abs(demand));
             activationTime=System.currentTimeMillis();
             state=State.activeOut;
@@ -106,8 +115,8 @@ public class Iotake {
     public void outtake(ControlMode Mode, double demand){
         //necessary so pushing button multiple times doesn't screw up activation time
         if (!(state==State.activeOut)){
-            left.set(Mode,-1*Math.abs(demand));
-            right.set(Mode.PercentOutput,-1*Math.abs(demand));
+            left.set(Mode,Math.abs(demand));
+            right.set(Mode,-1*Math.abs(demand));
             activationTime=System.currentTimeMillis();
             state=State.activeOut;
         }
@@ -126,8 +135,8 @@ public class Iotake {
     public State getState(){
         return state;
     }
-    public double getAvgMotorOutputVoltage(){
-        return (left.getMotorOutputVoltage()+(-1*right.getMotorOutputVoltage()))/2;
+    public double getOutputCurrent(){
+        return left.getOutputCurrent();
     }
     //testing function
     public double getMotorOutputVoltageLeft(){

@@ -46,9 +46,7 @@ public class Robot extends TimedRobot {
   private Iotake iotake=new Iotake();//Iotake is intake/outtake system
   private Arm arm=new Arm();
   private Lift rearLift=new Lift();
-  private TalonSRX intakeLeft=new TalonSRX(31);
-  private TalonSRX intakeRight=new TalonSRX(32);
-  private ExtendableMotor extendableintakeRight = new ExtendableMotor(intakeRight, 0.05, 1);
+  //private ExtendableMotor extendableintakeRight = new ExtendableMotor(intakeRight, 0.05, 1);
   
 
   //ROBOT ESSENTIAL METHODS
@@ -69,11 +67,18 @@ public class Robot extends TimedRobot {
     compressor=new Compressor(0); //DOUBLE CHECK IDS
   }
 
-
   @Override
   public void teleopPeriodic() {
+    periodic();
+  }
+  @Override
+  public void autonomousPeriodic() {
+    super.autonomousPeriodic();
+    periodic();
+  }
+  private void periodic(){
     //driving arcade
-    robot.arcadeDrive(rightStick.getY()*-.75, xStick.getX()*.75);
+    robot.arcadeDrive(rightStick.getY()*-.6, xStick.getX()*.6);
     
     //update button inputs
     if (!(jsbAdapter.equals(null)&&tsbAdapter.equals(null))){
@@ -82,7 +87,7 @@ public class Robot extends TimedRobot {
     }
     //stop elevator at voltage dip
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation 
-    if (!(elevator.getState()==Elevator.State.off)&&Math.abs(elevator.getOutputCurrent())>40 && System.currentTimeMillis()>elevator.getActivationTime()+500){
+    if (((elevator.getState()==Elevator.State.activeUp&&elevator.getOutputCurrent()>27)||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>2.5)) && System.currentTimeMillis()>elevator.getActivationTime()+250){
       elevatorOff();
       System.out.println("Elevator disabled from high output current");
     }
@@ -90,20 +95,19 @@ public class Robot extends TimedRobot {
       liftOff();
       System.out.println("Rearlift disabled from low output voltage");
     }
-    if (!(arm.getState()==Arm.State.off)&&Math.abs(arm.getMotorOutputVoltage())<voltageCutoff && System.currentTimeMillis()>arm.getActivationTime()+500){
+    if (!(arm.getState()==Arm.State.off)&&Math.abs(arm.getOutputCurrent())>17 && System.currentTimeMillis()>arm.getActivationTime()+500){
       armOff();
-      System.out.println("Arm disabled from low output voltage");
+      System.out.println("Arm disabled from high output current");
     }
     //stop intake at voltage dip
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation
     //no abs value needed for this one because outtake doesn't need to be ended at a voltage spike
-    if (iotake.getState()==Iotake.State.activeIn&&iotake.getAvgMotorOutputVoltage()<voltageCutoff && System.currentTimeMillis()>iotake.getActivationTime()+500){
+    if (iotake.getState()==Iotake.State.activeIn&&iotake.getOutputCurrent()>20 && System.currentTimeMillis()>iotake.getActivationTime()+500){
       iotakeOff();
-      System.out.println("Outtake disabled from low output voltage");
+      System.out.println("Outtake disabled from high output current");
     }
-    debug();
+    //debug();
   }
-
 
   //DRIVE TYPE
 
@@ -153,16 +157,16 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorUp(){
-    elevator.up();
+    elevator.up(.7);
   }
 
   /**Moves elevator down
    * 
    */
   public void elevatorDown(){
-    elevator.down();
+    elevator.down(.5);
   }
-
+  //Not fuctional!
   public void elevatorTop(){
     elevator.moveToPos(Preferences.getInstance().getDouble("elevatorTop",0),.1);
   }
@@ -172,7 +176,7 @@ public class Robot extends TimedRobot {
   }
   
   /**Moves elevator to middle possition
-   *
+   * NOT FUCTIONAL
    * <--NEEDS TO HAVE VALUE TUNED-->
    * 
    */
@@ -181,7 +185,7 @@ public class Robot extends TimedRobot {
   }
   
   /**Moves elevator to deck position
-   * 
+   * NOT FUCTIONAL
    * <--NEEDS TO HAVE VALUE TUNED-->
    * 
    */
@@ -236,11 +240,11 @@ public class Robot extends TimedRobot {
    * 
    */
   public void armUp(){
-    arm.up();
+    arm.up(.5);
   }
 
   public void armDown(){
-    arm.down();
+    arm.down(.5);
   }
 
   public void armSit(){
@@ -270,14 +274,14 @@ public class Robot extends TimedRobot {
    * 
    */
   public void outtake(){
-    iotake.outtake();
+    iotake.outtake(.7);
   }
 
   /**Initiates intake
    * 
    */
   public void intake(){
-    iotake.intake();
+    iotake.intake(.5);
   }
 
   /**Turns iotake off

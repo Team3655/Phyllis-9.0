@@ -20,7 +20,7 @@ public class JSBAdapter extends ButtonHandler{
             case 1:
                 robot.outtake();
             break;
-            //button 2 initiate intake
+            //button 2 hold for intake
             case 2:
                 robot.intake();
             break;
@@ -44,6 +44,10 @@ public class JSBAdapter extends ButtonHandler{
         switch (no){
             //button 1 hold for outtake
             case 1:
+                robot.iotakeOff();
+            break;
+            //button 2 hold for intake
+            case 2:
                 robot.iotakeOff();
             break;
         }

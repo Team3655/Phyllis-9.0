@@ -9,7 +9,6 @@ import edu.wpi.first.wpilibj.PIDController;
 
 public class Elevator extends TalonSRX {
     public static enum State {activeUp,activeDown,off};
-    private int currentPos;
     private State state;
     private double defaultDemand;
     private double activationTime=0;
@@ -18,7 +17,6 @@ public class Elevator extends TalonSRX {
      */
     public Elevator(){
         super(21);
-        currentPos=0;
         defaultDemand = .75;
         state = State.off;
         configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
@@ -42,7 +40,6 @@ public class Elevator extends TalonSRX {
         super(id);
         defaultDemand = .75;
         state = State.off;
-        currentPos=0;
         configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
         setSensorPhase(false);
         setSelectedSensorPosition(0);
