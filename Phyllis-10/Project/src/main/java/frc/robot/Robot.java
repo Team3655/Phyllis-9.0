@@ -274,14 +274,14 @@ public class Robot extends TimedRobot {
    * 
    */
   public void outtake(){
-    iotake.outtake(.7);
+    iotake.outtake(.85);
   }
 
   /**Initiates intake
    * 
    */
   public void intake(){
-    iotake.intake(.5);
+    iotake.intake(.6);
   }
 
   /**Turns iotake off

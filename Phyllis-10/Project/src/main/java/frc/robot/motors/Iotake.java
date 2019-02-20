@@ -71,7 +71,7 @@ public class Iotake {
         if (!(state==State.activeIn)){
             //necessary so pushing button multiple times doesn't screw up activation time
             left.set(ControlMode.PercentOutput,-1*Math.abs(defaultDemand));
-            right.set(ControlMode.PercentOutput,Math.abs(defaultDemand));
+            right.set(ControlMode.PercentOutput,-1*Math.abs(defaultDemand));
             activationTime=System.currentTimeMillis();
             state=State.activeIn;
         }
@@ -80,7 +80,7 @@ public class Iotake {
         //necessary so pushing button multiple times doesn't screw up activation time
         if (!(state==State.activeIn)){
             left.set(ControlMode.PercentOutput,-1*Math.abs(demand));
-            right.set(ControlMode.PercentOutput,Math.abs(demand));
+            right.set(ControlMode.PercentOutput,-1*Math.abs(demand));
             activationTime=System.currentTimeMillis();
             state=State.activeIn;
         }
@@ -89,7 +89,7 @@ public class Iotake {
         //necessary so pushing button multiple times doesn't screw up activation time
         if (!(state==State.activeIn)){
             left.set(Mode,-1*Math.abs(demand));
-            right.set(Mode,Math.abs(demand));
+            right.set(Mode,-1*Math.abs(demand));
             activationTime=System.currentTimeMillis();
             state=State.activeIn;
         }
@@ -98,7 +98,7 @@ public class Iotake {
         //necessary so pushing button multiple times doesn't screw up activation time
         if (!(state==State.activeOut)){
             left.set(ControlMode.PercentOutput,Math.abs(defaultDemand));
-            right.set(ControlMode.PercentOutput,-1*Math.abs(defaultDemand));
+            right.set(ControlMode.PercentOutput,Math.abs(defaultDemand));
             activationTime=System.currentTimeMillis();
             state=State.activeOut;
         }
@@ -107,7 +107,7 @@ public class Iotake {
         //necessary so pushing button multiple times doesn't screw up activation time
         if (!(state==State.activeOut)){
             left.set(ControlMode.PercentOutput,Math.abs(demand));
-            right.set(ControlMode.PercentOutput,-1*Math.abs(demand));
+            right.set(ControlMode.PercentOutput,Math.abs(demand));
             activationTime=System.currentTimeMillis();
             state=State.activeOut;
         }
@@ -116,7 +116,7 @@ public class Iotake {
         //necessary so pushing button multiple times doesn't screw up activation time
         if (!(state==State.activeOut)){
             left.set(Mode,Math.abs(demand));
-            right.set(Mode,-1*Math.abs(demand));
+            right.set(Mode,Math.abs(demand));
             activationTime=System.currentTimeMillis();
             state=State.activeOut;
         }
