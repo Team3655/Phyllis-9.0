@@ -8,7 +8,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRXPIDSetConfiguration;
 import edu.wpi.first.wpilibj.PIDController;
 
 public class Elevator extends TalonSRX {
-    public static enum State {activeUp,activeDown,off};
+    public static enum State {activeUp,activeDown,activePID,off};
     private State state;
     private double defaultDemand;
     private double activationTime=0;
@@ -171,38 +171,41 @@ public class Elevator extends TalonSRX {
     public void moveToPos(int pos){
         configPeakOutputForward(defaultDemand);
         configPeakOutputReverse(-defaultDemand);
-        if (pos*4096>getSelectedSensorPosition()){
+        /*if (pos*4096>getSelectedSensorPosition()){
             state=State.activeUp;
         } else if(pos*4096<getSelectedSensorPosition()){
             state=State.activeDown;
         } else {
             state=State.off;
-        }
-        set(ControlMode.Position,pos*4096);
+        }*/
+        state=State.activePID;
+        set(ControlMode.Position,pos);
     }
     public void moveToPos(double pos){
         configPeakOutputForward(defaultDemand);
         configPeakOutputReverse(-defaultDemand);
-        if (pos*4096>getSelectedSensorPosition()){
+        /*if (pos>getSelectedSensorPosition()){
             state=State.activeUp;
-        } else if(pos*4096<getSelectedSensorPosition()){
+        } else if(pos<getSelectedSensorPosition()){
             state=State.activeDown;
         } else {
             state=State.off;
-        }
-        set(ControlMode.Position,pos*4096);
+        }*/
+        state=State.activePID;
+        set(ControlMode.Position,pos);
     }
     public void moveToPos(double pos,double demand){
         configPeakOutputForward(demand);
         configPeakOutputReverse(-demand);
-        if (pos*4096>getSelectedSensorPosition()){
+        /*if (pos>getSelectedSensorPosition()){
             state=State.activeUp;
-        } else if(pos*4096<getSelectedSensorPosition()){
+        } else if(pos<getSelectedSensorPosition()){
             state=State.activeDown;
         } else {
             state=State.off;
-        }
-        set(ControlMode.Position,pos*4096);
+        }*/
+        state=State.activePID;
+        set(ControlMode.Position,pos);
     }
     public void printSensorPosition(){
         System.out.println("Sensor Position: "+getSelectedSensorPosition());

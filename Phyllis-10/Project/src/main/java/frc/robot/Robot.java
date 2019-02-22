@@ -19,6 +19,9 @@ import frc.robot.motors.Iotake;
 import frc.robot.motors.Lift;
 
 import com.revrobotics.*;
+
+import java.util.Hashtable;
+
 import com.ctre.phoenix.motorcontrol.*;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
@@ -46,6 +49,7 @@ public class Robot extends TimedRobot {
   private Iotake iotake=new Iotake();//Iotake is intake/outtake system
   private Arm arm=new Arm();
   private Lift rearLift=new Lift();
+  private Hashtable<Integer,String> tuningValues;
   //private ExtendableMotor extendableintakeRight = new ExtendableMotor(intakeRight, 0.05, 1);
   
 
@@ -63,7 +67,11 @@ public class Robot extends TimedRobot {
     tractorPanel = new Joystick(2);
     jsbAdapter=new JSBAdapter(rightStick, this);
     tsbAdapter=new TSBAdapter(tractorPanel, this);
-    solenoid=new Solenoid(0); //DOUBLE CHECK IDS
+    tuningValues=new Hashtable<>();
+    tuningValues.put(10, "eTop");
+    tuningValues.put(10, "eBot");
+
+    //finish tuning values
     compressor=new Compressor(0); //DOUBLE CHECK IDS
   }
 
@@ -87,7 +95,7 @@ public class Robot extends TimedRobot {
     }
     //stop elevator at voltage dip
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation 
-    if (((elevator.getState()==Elevator.State.activeUp&&elevator.getOutputCurrent()>27)||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>2.5)) && System.currentTimeMillis()>elevator.getActivationTime()+250){
+    if ((((elevator.getState()==Elevator.State.activeUp||elevator.getState()==Elevator.State.activePID)&&Math.abs(elevator.getOutputCurrent())>30)||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>2.5)) && System.currentTimeMillis()>elevator.getActivationTime()+250){
       elevatorOff();
       System.out.println("Elevator disabled from high output current");
     }
@@ -157,7 +165,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorUp(){
-    elevator.up(.7);
+    elevator.up(.85);
   }
 
   /**Moves elevator down
@@ -168,11 +176,11 @@ public class Robot extends TimedRobot {
   }
   //Not fuctional!
   public void elevatorTop(){
-    elevator.moveToPos(Preferences.getInstance().getDouble("elevatorTop",0),.1);
+    elevator.moveToPos(10,.1);
   }
 
   public void elevatorBottom(){
-    elevator.moveToPos(Preferences.getInstance().getDouble("elevatorBottom",0),.1);
+    elevator.moveToPos(10,.1);
   }
   
   /**Moves elevator to middle possition
@@ -181,7 +189,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorMid(){
-    elevator.moveToPos(Preferences.getInstance().getDouble("elevatorMid",0),.1);
+    elevator.moveToPos(10,.1);
   }
   
   /**Moves elevator to deck position
@@ -190,7 +198,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorDeck(){
-    elevator.moveToPos(Preferences.getInstance().getDouble("elevatorDeck",0),.1);
+    elevator.moveToPos(10,.1);
   }
 
   /**turns off elevator
@@ -281,7 +289,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void intake(){
-    iotake.intake(.6);
+    iotake.intake(.75);
   }
 
   /**Turns iotake off
