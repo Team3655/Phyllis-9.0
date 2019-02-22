@@ -1,5 +1,6 @@
 package frc.robot.buttons;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import frc.robot.Robot;
 import frc.robot.motors.Elevator;
@@ -11,13 +12,18 @@ public class TSBAdapter extends ButtonHandler{
     private enum Mode{RobotResponse,Tune};
     private Mode mode;
     private String[] tuningValues={"eTop","eBot","eMid","eDec","aUp","aDow","aDec","lTop","lBot"};
+    private int currentPropertyNo;
     private String currentTuningValue;
+    private String inputCache;
     private int currentValue;
     public TSBAdapter(Joystick tractorPanel, Robot robot){
         super(tractorPanel,28); //button 28 is the red button on the joystick and button 27 is press on wheel (those buttons aren't labled on the panel)
         this.robot=robot;
         mode=Mode.RobotResponse;
-        currentTuningValue=tuningValues[0];
+        currentPropertyNo=0;
+        currentTuningValue=tuningValues[currentPropertyNo];
+        currentValue=robot.getProp(currentTuningValue);
+        inputCache="";
     }
     public void buttonPressed(int no){
         if (mode==Mode.RobotResponse){
@@ -115,13 +121,42 @@ public class TSBAdapter extends ButtonHandler{
                 break;
             }
         } else {
-            switch (no){
-                case 21:
-                    //set value to input
-                break;
-                case 28:
-                    mode=Mode.RobotResponse;
-                break;
+            if (no<10){
+                inputCache=inputCache+no;
+                System.out.println("Input Cache: "+inputCache);
+            } else {
+                switch (no){
+                    //Button 21 set value to input
+                    case 21:
+                        try {
+                            robot.setProp(currentTuningValue, Integer.parseInt(inputCache));
+                            System.out.println(currentTuningValue+" set to "+inputCache);
+                            inputCache="";
+                        } catch (NumberFormatException e){
+                            robot.setProp(currentTuningValue, 0);
+                            System.err.println("User did not enter a number");
+                            System.err.println(currentTuningValue+" defaulted to 0");
+                            inputCache="";
+                        }
+                    break;
+                    case 27:
+                        if (currentPropertyNo<0){
+                            currentPropertyNo=8;
+                        }
+                        currentTuningValue=tuningValues[currentPropertyNo];
+                    break;
+                    case 26:
+                        //change prop to set
+                        currentPropertyNo--;
+                        if (currentPropertyNo<0){
+                            currentPropertyNo=8;
+                        }
+                        currentTuningValue=tuningValues[currentPropertyNo];
+                    break;
+                    case 28:
+                        mode=Mode.RobotResponse;
+                    break;
+                }
             }
         }
     }

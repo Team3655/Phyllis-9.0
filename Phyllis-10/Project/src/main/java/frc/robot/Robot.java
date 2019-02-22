@@ -49,7 +49,7 @@ public class Robot extends TimedRobot {
   private Iotake iotake=new Iotake();//Iotake is intake/outtake system
   private Arm arm=new Arm();
   private Lift rearLift=new Lift();
-  private Hashtable<Integer,String> tuningValues;
+  private Hashtable<String,Integer> tuningValues;
   //private ExtendableMotor extendableintakeRight = new ExtendableMotor(intakeRight, 0.05, 1);
   
 
@@ -68,8 +68,15 @@ public class Robot extends TimedRobot {
     jsbAdapter=new JSBAdapter(rightStick, this);
     tsbAdapter=new TSBAdapter(tractorPanel, this);
     tuningValues=new Hashtable<>();
-    tuningValues.put(10, "eTop");
-    tuningValues.put(10, "eBot");
+    tuningValues.put("eTop",10);
+    tuningValues.put("eBot",10);
+    tuningValues.put("eMid",10);
+    tuningValues.put("eDec",10);
+    tuningValues.put("aUp",10);
+    tuningValues.put("aDow",10);
+    tuningValues.put("aDec",10);
+    tuningValues.put("lTop",10);
+    tuningValues.put("lBot",10);
 
     //finish tuning values
     compressor=new Compressor(0); //DOUBLE CHECK IDS
@@ -116,6 +123,18 @@ public class Robot extends TimedRobot {
     }
     //debug();
   }
+  
+  
+  //TUNING PROPERTIES
+
+  public void setProp(String name,int value){
+    tuningValues.replace(name,value);
+  }
+
+  public int getProp(String name){
+    return tuningValues.get(name);
+  }
+
 
   //DRIVE TYPE
 
