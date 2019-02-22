@@ -11,18 +11,16 @@ public class TSBAdapter extends ButtonHandler{
     private Robot robot;
     private enum Mode{RobotResponse,Tune};
     private Mode mode;
-    private String[] tuningValues={"eTop","eBot","eMid","eDec","aUp","aDow","aDec","lTop","lBot"};
+    private String[] tuningValues={"eTop","eBot","eMid","eDec","aHat","aBal","aSit","aDec","lTop","lBot"};
     private int currentPropertyNo;
     private String currentTuningValue;
     private String inputCache;
-    private int currentValue;
     public TSBAdapter(Joystick tractorPanel, Robot robot){
         super(tractorPanel,28); //button 28 is the red button on the joystick and button 27 is press on wheel (those buttons aren't labled on the panel)
         this.robot=robot;
         mode=Mode.RobotResponse;
         currentPropertyNo=0;
         currentTuningValue=tuningValues[currentPropertyNo];
-        currentValue=robot.getProp(currentTuningValue);
         inputCache="";
     }
     public void buttonPressed(int no){
@@ -118,6 +116,7 @@ public class TSBAdapter extends ButtonHandler{
                 break;
                 case 28:
                     mode=Mode.Tune;
+                    System.out.println("Mode set to 'Tune'");
                 break;
             }
         } else {
@@ -139,22 +138,29 @@ public class TSBAdapter extends ButtonHandler{
                             inputCache="";
                         }
                     break;
+                    case 25:
+                        System.out.println("Current value of "+currentTuningValue+": "+robot.getProp(currentTuningValue));
+                    break;
+                    //button 26 changes what property you are editing (++)
                     case 27:
-                        if (currentPropertyNo<0){
-                            currentPropertyNo=8;
+                        if (currentPropertyNo<9){
+                            currentPropertyNo=0;
                         }
                         currentTuningValue=tuningValues[currentPropertyNo];
+                        System.out.println("Now edititing "+currentTuningValue);
                     break;
+                    //button 26 changes what property you are editing (--)
                     case 26:
-                        //change prop to set
                         currentPropertyNo--;
                         if (currentPropertyNo<0){
-                            currentPropertyNo=8;
+                            currentPropertyNo=9;
                         }
                         currentTuningValue=tuningValues[currentPropertyNo];
+                        System.out.println("Now edititing "+currentTuningValue);
                     break;
                     case 28:
                         mode=Mode.RobotResponse;
+                        System.out.println("Mode set to 'RobotResponse'");
                     break;
                 }
             }

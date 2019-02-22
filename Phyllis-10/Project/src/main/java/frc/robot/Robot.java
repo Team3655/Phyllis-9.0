@@ -31,6 +31,7 @@ public class Robot extends TimedRobot {
   //CLASS VARIABLES
 
   public static enum driveType {twoJoyStick,oneJoystick};
+  private boolean debugging;
   private final double voltageCutoff=8.5;
   private DifferentialDrive robot;
   private Joystick leftStick;
@@ -57,6 +58,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() { 
+    debugging=false;
     CameraServer.getInstance().startAutomaticCapture();  
     leftBackCAN.follow(leftFrontCAN);
     rightBackCAN.follow(rightFrontCAN);
@@ -72,14 +74,20 @@ public class Robot extends TimedRobot {
     tuningValues.put("eBot",10);
     tuningValues.put("eMid",10);
     tuningValues.put("eDec",10);
-    tuningValues.put("aUp",10);
-    tuningValues.put("aDow",10);
+    tuningValues.put("aHat",10);
+    tuningValues.put("aBal",10);
+    tuningValues.put("aSit",10);
     tuningValues.put("aDec",10);
     tuningValues.put("lTop",10);
     tuningValues.put("lBot",10);
 
     //finish tuning values
     compressor=new Compressor(0); //DOUBLE CHECK IDS
+  }
+  //WARNING: Comment this out after test, just here to see if the robot can drive while "disabled"
+  @Override
+  public void disabledPeriodic() {
+    periodic();
   }
 
   @Override
@@ -121,7 +129,9 @@ public class Robot extends TimedRobot {
       iotakeOff();
       System.out.println("Outtake disabled from high output current");
     }
-    //debug();
+    if (debugging){
+      debug();
+    }
   }
   
   
@@ -195,11 +205,11 @@ public class Robot extends TimedRobot {
   }
   //Not fuctional!
   public void elevatorTop(){
-    elevator.moveToPos(10,.1);
+    elevator.moveToPos(tuningValues.get("eTop"),.1);
   }
 
   public void elevatorBottom(){
-    elevator.moveToPos(10,.1);
+    elevator.moveToPos(tuningValues.get("eBot"),.1);
   }
   
   /**Moves elevator to middle possition
@@ -208,7 +218,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorMid(){
-    elevator.moveToPos(10,.1);
+    elevator.moveToPos(tuningValues.get("eMid"),.1);
   }
   
   /**Moves elevator to deck position
@@ -217,7 +227,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorDeck(){
-    elevator.moveToPos(10,.1);
+    elevator.moveToPos(tuningValues.get("eDec"),.1);
   }
 
   /**turns off elevator
@@ -247,11 +257,11 @@ public class Robot extends TimedRobot {
    * 
    */
   public void liftRaise(){
-    rearLift.moveToPos(Preferences.getInstance().getDouble("liftRaise",-500),.3);
+    rearLift.moveToPos(tuningValues.get("lTop"),.3);
   }
 
   public void liftLower(){
-    rearLift.moveToPos(Preferences.getInstance().getDouble("liftLower",-1000),.3);
+    rearLift.moveToPos(tuningValues.get("lBot"),.3);
   }
   /**Turns lift off
    * 
@@ -270,26 +280,44 @@ public class Robot extends TimedRobot {
     arm.up(.5);
   }
 
+  /**Moves arm down
+   * 
+   */
   public void armDown(){
     arm.down(.5);
   }
 
+  /**Puts arm in sitting position?
+   * 
+   */
   public void armSit(){
-    arm.moveToPos(Preferences.getInstance().getDouble("armSit",0),.3);
+    arm.moveToPos(tuningValues.get("aSit"),.3);
   }
 
+  /**Puts arm at deck height
+   * 
+   */
   public void armDeck(){
-    arm.moveToPos(Preferences.getInstance().getDouble("armDeck",0),.3);
+    arm.moveToPos(tuningValues.get("aDec"),.3);
   }
 
+  /**Puts arm in hatch (up) position
+   * 
+   */
   public void armHatch(){
-    arm.moveToPos(Preferences.getInstance().getDouble("armHatch",0),.3);
+    arm.moveToPos(Preferences.getInstance().getDouble("aHat",0),.3);
   }
-
+  
+  /**Puts arm in ball (down) position
+   * 
+   */
   public void armBall(){
-    arm.moveToPos(Preferences.getInstance().getDouble("armBall",0),.3);
+    arm.moveToPos(Preferences.getInstance().getDouble("aBal",0),.3);
   }
-
+  
+  /**Turns arm off
+   * 
+   */
   public void armOff(){
     arm.off();
   }
@@ -331,6 +359,13 @@ public class Robot extends TimedRobot {
     rearLift.printSensorPosition();
     System.out.println("<--ARM-->");
     arm.printSensorPosition();
+  }
+
+  /**Sets wheather the robot should display debug info
+   * @param debugging
+   */
+  public void setDebugging(boolean debugging) {
+    this.debugging = debugging;
   }
 
   /**
