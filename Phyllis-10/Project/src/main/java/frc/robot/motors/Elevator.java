@@ -28,9 +28,9 @@ public class Elevator extends TalonSRX {
         configPeakOutputReverse(-defaultDemand);
         configAllowableClosedloopError(0, 0);
         config_kF(0, 0.0);
-		config_kP(0, .15);
+		config_kP(0, 1);
 		config_kI(0, 0.0);
-		config_kD(0, 1.0);
+		config_kD(0, 0);
     }
     /**Constructs a new elevator with an id of <code>id</code> and a default demand percent of .75
      * 
