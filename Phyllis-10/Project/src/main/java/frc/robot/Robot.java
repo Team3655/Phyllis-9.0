@@ -31,7 +31,6 @@ public class Robot extends TimedRobot {
   //CLASS VARIABLES
 
   public static enum driveType {twoJoyStick,oneJoystick};
-  private boolean debugging;
   private final double voltageCutoff=8.5;
   private DifferentialDrive robot;
   private Joystick leftStick;
@@ -58,10 +57,11 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() { 
-    debugging=false;
     CameraServer.getInstance().startAutomaticCapture();  
     leftBackCAN.follow(leftFrontCAN);
     rightBackCAN.follow(rightFrontCAN);
+    rightFrontCAN.setRampRate(10);
+    leftFrontCAN.setRampRate(10);
     robot = new DifferentialDrive(leftFrontCAN,rightFrontCAN);
     leftStick = new Joystick(0);
     rightStick = new Joystick(1);
@@ -78,16 +78,10 @@ public class Robot extends TimedRobot {
     tuningValues.put("aBal",10);
     tuningValues.put("aSit",10);
     tuningValues.put("aDec",10);
-    tuningValues.put("lTop",10);
-    tuningValues.put("lBot",10);
+    tuningValues.put("lTop",0);
+    tuningValues.put("lBot",-10);
 
-    //finish tuning values
     compressor=new Compressor(0); //DOUBLE CHECK IDS
-  }
-  //WARNING: Comment this out after test, just here to see if the robot can drive while "disabled"
-  @Override
-  public void disabledPeriodic() {
-    periodic();
   }
 
   @Override
@@ -129,20 +123,7 @@ public class Robot extends TimedRobot {
       iotakeOff();
       System.out.println("Outtake disabled from high output current");
     }
-    if (debugging){
-      debug();
-    }
-  }
-  
-  
-  //TUNING PROPERTIES
-
-  public void setProp(String name,int value){
-    tuningValues.replace(name,value);
-  }
-
-  public int getProp(String name){
-    return tuningValues.get(name);
+    //debug();
   }
 
 
@@ -175,7 +156,13 @@ public class Robot extends TimedRobot {
 
 
   //TUNING
+  public int getTuningValue(String key){
+    return tuningValues.get(key);
+  }
 
+  public void setTuningValue(String key,int value){
+    tuningValues.replace(key,value);
+  }
 
   //PNUEMATICS
 
@@ -208,11 +195,11 @@ public class Robot extends TimedRobot {
   }
   //Not fuctional!
   public void elevatorTop(){
-    elevator.moveToPos(tuningValues.get("eTop"),.1);
+    elevator.moveToPos(10,.1);
   }
 
   public void elevatorBottom(){
-    elevator.moveToPos(tuningValues.get("eBot"),.1);
+    elevator.moveToPos(10,.1);
   }
   
   /**Moves elevator to middle possition
@@ -221,7 +208,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorMid(){
-    elevator.moveToPos(tuningValues.get("eMid"),.1);
+    elevator.moveToPos(10,.1);
   }
   
   /**Moves elevator to deck position
@@ -230,7 +217,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorDeck(){
-    elevator.moveToPos(tuningValues.get("eDec"),.1);
+    elevator.moveToPos(10,.1);
   }
 
   /**turns off elevator
@@ -260,11 +247,11 @@ public class Robot extends TimedRobot {
    * 
    */
   public void liftRaise(){
-    rearLift.moveToPos(tuningValues.get("lTop"),.3);
+    rearLift.moveToPos(Preferences.getInstance().getDouble("liftRaise",-500),.3);
   }
 
   public void liftLower(){
-    rearLift.moveToPos(tuningValues.get("lBot"),.3);
+    rearLift.moveToPos(Preferences.getInstance().getDouble("liftLower",-1000),.3);
   }
   /**Turns lift off
    * 
@@ -283,44 +270,26 @@ public class Robot extends TimedRobot {
     arm.up(.5);
   }
 
-  /**Moves arm down
-   * 
-   */
   public void armDown(){
     arm.down(.5);
   }
 
-  /**Puts arm in sitting position?
-   * 
-   */
   public void armSit(){
-    arm.moveToPos(tuningValues.get("aSit"),.3);
+    arm.moveToPos(Preferences.getInstance().getDouble("armSit",0),.3);
   }
 
-  /**Puts arm at deck height
-   * 
-   */
   public void armDeck(){
-    arm.moveToPos(tuningValues.get("aDec"),.3);
+    arm.moveToPos(Preferences.getInstance().getDouble("armDeck",0),.3);
   }
 
-  /**Puts arm in hatch (up) position
-   * 
-   */
   public void armHatch(){
-    arm.moveToPos(Preferences.getInstance().getDouble("aHat",0),.3);
+    arm.moveToPos(Preferences.getInstance().getDouble("armHatch",0),.3);
   }
-  
-  /**Puts arm in ball (down) position
-   * 
-   */
+
   public void armBall(){
-    arm.moveToPos(Preferences.getInstance().getDouble("aBal",0),.3);
+    arm.moveToPos(Preferences.getInstance().getDouble("armBall",0),.3);
   }
-  
-  /**Turns arm off
-   * 
-   */
+
   public void armOff(){
     arm.off();
   }
@@ -362,13 +331,6 @@ public class Robot extends TimedRobot {
     rearLift.printSensorPosition();
     System.out.println("<--ARM-->");
     arm.printSensorPosition();
-  }
-
-  /**Sets wheather the robot should display debug info
-   * @param debugging
-   */
-  public void setDebugging(boolean debugging) {
-    this.debugging = debugging;
   }
 
   /**
