@@ -117,6 +117,7 @@ public class Robot extends TimedRobot {
     //debug();
   }
 
+
   //DRIVE TYPE
 
   /**Set drive type e.g. <code>driveType.oneJoystick</code> for one joystick arcade drive
@@ -143,6 +144,9 @@ public class Robot extends TimedRobot {
       return driveType.twoJoyStick;
     }
   }
+
+
+  //TUNING
 
 
   //PNUEMATICS
