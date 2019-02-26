@@ -60,8 +60,8 @@ public class Robot extends TimedRobot {
     CameraServer.getInstance().startAutomaticCapture();  
     leftBackCAN.follow(leftFrontCAN);
     rightBackCAN.follow(rightFrontCAN);
-    rightFrontCAN.setRampRate(10);
-    leftFrontCAN.setRampRate(10);
+    //rightFrontCAN.setRampRate(20);
+    //leftFrontCAN.setRampRate(20);
     robot = new DifferentialDrive(leftFrontCAN,rightFrontCAN);
     leftStick = new Joystick(0);
     rightStick = new Joystick(1);
@@ -80,7 +80,7 @@ public class Robot extends TimedRobot {
     tuningValues.put("aDec",10);
     tuningValues.put("lTop",0);
     tuningValues.put("lBot",-10);
-
+    solenoid=new Solenoid(0);
     compressor=new Compressor(0); //DOUBLE CHECK IDS
   }
 
@@ -95,7 +95,7 @@ public class Robot extends TimedRobot {
   }
   private void periodic(){
     //driving arcade
-    robot.arcadeDrive(rightStick.getY()*-.6, xStick.getX()*.6);
+    robot.arcadeDrive(rightStick.getY()*-.75, xStick.getX()*.75);
     
     //update button inputs
     if (!(jsbAdapter.equals(null)&&tsbAdapter.equals(null))){
@@ -108,9 +108,9 @@ public class Robot extends TimedRobot {
       elevatorOff();
       System.out.println("Elevator disabled from high output current");
     }
-    if (!(rearLift.getState()==Lift.State.off)&&Math.abs(rearLift.getMotorOutputVoltage())<voltageCutoff && System.currentTimeMillis()>rearLift.getActivationTime()+500){
+    if (!(rearLift.getState()==Lift.State.off)&&Math.abs(rearLift.getOutputCurrent())>18 && System.currentTimeMillis()>rearLift.getActivationTime()+500){
       liftOff();
-      System.out.println("Rearlift disabled from low output voltage");
+      System.out.println("Rearlift disabled from high output current");
     }
     if (!(arm.getState()==Arm.State.off)&&Math.abs(arm.getOutputCurrent())>17 && System.currentTimeMillis()>arm.getActivationTime()+500){
       armOff();

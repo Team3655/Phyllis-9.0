@@ -12,6 +12,7 @@ public class Elevator extends TalonSRX {
     private State state;
     private double defaultDemand;
     private double activationTime=0;
+    private PIDConf elevator;
     /**Constructs a new elevator with an id of 21 and a default demand percent of .75
      * 
      */
@@ -30,7 +31,8 @@ public class Elevator extends TalonSRX {
         config_kF(0, 0.0);
 		config_kP(0, 1);
 		config_kI(0, 0.0);
-		config_kD(0, 0);
+        config_kD(0, 0);
+        elevator=new PIDConf(this);
     }
     /**Constructs a new elevator with an id of <code>id</code> and a default demand percent of .75
      * 
@@ -41,7 +43,7 @@ public class Elevator extends TalonSRX {
         defaultDemand = .75;
         state = State.off;
         configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        setSensorPhase(false);
+        setSensorPhase(true);
         setSelectedSensorPosition(0);
         configNominalOutputForward(0);
 		configNominalOutputReverse(0);
@@ -184,28 +186,14 @@ public class Elevator extends TalonSRX {
     public void moveToPos(double pos){
         configPeakOutputForward(defaultDemand);
         configPeakOutputReverse(-defaultDemand);
-        /*if (pos>getSelectedSensorPosition()){
-            state=State.activeUp;
-        } else if(pos<getSelectedSensorPosition()){
-            state=State.activeDown;
-        } else {
-            state=State.off;
-        }*/
+        elevator.moveRotations(2);
         state=State.activePID;
-        set(ControlMode.Position,pos);
     }
     public void moveToPos(double pos,double demand){
         configPeakOutputForward(demand);
         configPeakOutputReverse(-demand);
-        /*if (pos>getSelectedSensorPosition()){
-            state=State.activeUp;
-        } else if(pos<getSelectedSensorPosition()){
-            state=State.activeDown;
-        } else {
-            state=State.off;
-        }*/
         state=State.activePID;
-        set(ControlMode.Position,pos);
+        elevator.moveRotations(2);
     }
     public void printSensorPosition(){
         System.out.println("Sensor Position: "+getSelectedSensorPosition());

@@ -128,18 +128,18 @@ public class TSBAdapter extends ButtonHandler{
                     //Button 21 set value to input
                     case 21:
                         try {
-                            robot.setProp(currentTuningValue, Integer.parseInt(inputCache));
+                            //robot.setProp(currentTuningValue, Integer.parseInt(inputCache));
                             System.out.println(currentTuningValue+" set to "+inputCache);
                             inputCache="";
                         } catch (NumberFormatException e){
-                            robot.setProp(currentTuningValue, 0);
+                            //robot.setProp(currentTuningValue, 0);
                             System.err.println("User did not enter a number");
                             System.err.println(currentTuningValue+" defaulted to 0");
                             inputCache="";
                         }
                     break;
                     case 25:
-                        System.out.println("Current value of "+currentTuningValue+": "+robot.getProp(currentTuningValue));
+                        //System.out.println("Current value of "+currentTuningValue+": "+robot.getProp(currentTuningValue));
                     break;
                     //button 26 changes what property you are editing (++)
                     case 27:
