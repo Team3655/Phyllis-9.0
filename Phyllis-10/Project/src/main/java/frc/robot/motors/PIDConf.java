@@ -25,6 +25,18 @@ public class PIDConf{
         this.motor=motor;
         init();
     }
+    public PIDConf(TalonSRX motor,boolean sensorPhase){
+        sensorPhase=sensorPhase;
+        idx=0;
+        timeoutMs=30;
+        peakDemandB=.75;
+        peakDemandF=.75;
+        nominalDemandB=0;
+        nominalDemandF=0;
+        this.sensorPhase=sensorPhase;
+        this.motor=motor;
+        init();
+    }
     public PIDConf(TalonSRX motor,double peakDemand){
         sensorPhase=false;
         idx=0;
@@ -126,7 +138,7 @@ public class PIDConf{
         /* Config the sensor used for Primary PID and sensor direction */
         motor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative,0,30);
         /* Set sensor deriction to default false */
-        motor.setSensorPhase(false);
+        motor.setSensorPhase(sensorPhase);
         motor.configNominalOutputForward(nominalDemandF);
         motor.configNominalOutputReverse(nominalDemandB);
         /* Config the peak and nominal outputs, 12V means full */
@@ -153,6 +165,11 @@ public class PIDConf{
 
 
     public void moveRotations(double r){
+        motor.set(ControlMode.Position,r*4096);
+    }
+    public void moveRotations(double r, double demand){
+        motor.configPeakOutputForward(demand);
+        motor.configPeakOutputReverse(-demand);
         motor.set(ControlMode.Position,r*4096);
     }
 }

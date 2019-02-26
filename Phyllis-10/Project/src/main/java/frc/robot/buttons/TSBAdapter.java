@@ -125,6 +125,9 @@ public class TSBAdapter extends ButtonHandler{
                 System.out.println("Input Cache: "+inputCache);
             } else {
                 switch (no){
+                    case 10:
+                        inputCache=inputCache.substring(0, inputCache.length()-1);
+                    break;
                     //Button 21 set value to input
                     case 21:
                         try {

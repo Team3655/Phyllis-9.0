@@ -195,11 +195,11 @@ public class Robot extends TimedRobot {
   }
   //Not fuctional!
   public void elevatorTop(){
-    elevator.moveToPos(10,.1);
+    elevator.moveToPos(10,1);
   }
 
   public void elevatorBottom(){
-    elevator.moveToPos(10,.1);
+    elevator.moveToPos(0,.7);
   }
   
   /**Moves elevator to middle possition
@@ -208,7 +208,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorMid(){
-    elevator.moveToPos(10,.1);
+    elevator.moveToPos(5,1);
   }
   
   /**Moves elevator to deck position

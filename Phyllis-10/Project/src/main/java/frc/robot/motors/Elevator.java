@@ -21,7 +21,6 @@ public class Elevator extends TalonSRX {
         defaultDemand = .75;
         state = State.off;
         configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        setSensorPhase(false);
         setSelectedSensorPosition(0);
         configNominalOutputForward(0);
 		configNominalOutputReverse(0);
@@ -32,7 +31,7 @@ public class Elevator extends TalonSRX {
 		config_kP(0, 1);
 		config_kI(0, 0.0);
         config_kD(0, 0);
-        elevator=new PIDConf(this);
+        elevator=new PIDConf(this,true);
     }
     /**Constructs a new elevator with an id of <code>id</code> and a default demand percent of .75
      * 
@@ -43,7 +42,6 @@ public class Elevator extends TalonSRX {
         defaultDemand = .75;
         state = State.off;
         configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        setSensorPhase(true);
         setSelectedSensorPosition(0);
         configNominalOutputForward(0);
 		configNominalOutputReverse(0);
@@ -103,6 +101,8 @@ public class Elevator extends TalonSRX {
      */
     public void up(){
         if (!(state==State.activeUp)){
+            configPeakOutputForward(1);
+            configPeakOutputReverse(-1);
             set(ControlMode.PercentOutput, defaultDemand);
             state = State.activeUp;
             activationTime = System.currentTimeMillis();
@@ -115,6 +115,8 @@ public class Elevator extends TalonSRX {
      */
     public void up(double demand){
         if (!(state==State.activeUp)){
+            configPeakOutputForward(1);
+            configPeakOutputReverse(-1);
             set(ControlMode.PercentOutput, Math.abs(demand));
             state = State.activeUp;
             activationTime = System.currentTimeMillis();
@@ -127,6 +129,8 @@ public class Elevator extends TalonSRX {
      */
     public void up(ControlMode Mode, double demand){
         if (!(state==State.activeUp)){
+            configPeakOutputForward(1);
+            configPeakOutputReverse(-1);
             set(Mode, Math.abs(demand));
             state=State.activeUp;
             activationTime = System.currentTimeMillis();
@@ -137,6 +141,8 @@ public class Elevator extends TalonSRX {
      */
     public void down(){
         if (!(state==State.activeDown)){
+            configPeakOutputForward(1);
+            configPeakOutputReverse(-1);
             set(ControlMode.PercentOutput,-1*Math.abs(defaultDemand));
             state = State.activeDown;
             activationTime = System.currentTimeMillis();
@@ -149,6 +155,8 @@ public class Elevator extends TalonSRX {
      */
     public void down(double demand){
         if (!(state==State.activeDown)){
+            configPeakOutputForward(1);
+        configPeakOutputReverse(-1);
             set(ControlMode.PercentOutput,-1*Math.abs(demand));
             state = State.activeDown;
             activationTime = System.currentTimeMillis();
@@ -160,6 +168,8 @@ public class Elevator extends TalonSRX {
      * @param Mode
      */
     public void down(ControlMode Mode, double demand){
+        configPeakOutputForward(1);
+        configPeakOutputReverse(-1);
         if (!(state==State.activeDown)){
             set(Mode, -1*Math.abs(demand));
             state = State.activeDown;
@@ -171,32 +181,20 @@ public class Elevator extends TalonSRX {
         state = State.off;
     }
     public void moveToPos(int pos){
-        configPeakOutputForward(defaultDemand);
-        configPeakOutputReverse(-defaultDemand);
-        /*if (pos*4096>getSelectedSensorPosition()){
-            state=State.activeUp;
-        } else if(pos*4096<getSelectedSensorPosition()){
-            state=State.activeDown;
-        } else {
-            state=State.off;
-        }*/
         state=State.activePID;
-        set(ControlMode.Position,pos);
+        elevator.moveRotations(pos,defaultDemand);
     }
     public void moveToPos(double pos){
-        configPeakOutputForward(defaultDemand);
-        configPeakOutputReverse(-defaultDemand);
-        elevator.moveRotations(2);
+        elevator.moveRotations(2,defaultDemand);
         state=State.activePID;
     }
     public void moveToPos(double pos,double demand){
-        configPeakOutputForward(demand);
-        configPeakOutputReverse(-demand);
         state=State.activePID;
-        elevator.moveRotations(2);
+        elevator.moveRotations(pos,demand);
     }
     public void printSensorPosition(){
         System.out.println("Sensor Position: "+getSelectedSensorPosition());
+        System.out.println("Sensor Pulse Position: "+elevator.getEncoderPosition());
         System.out.println("Target Position: "+getClosedLoopTarget());
     }
     public double getActivationTime(){
