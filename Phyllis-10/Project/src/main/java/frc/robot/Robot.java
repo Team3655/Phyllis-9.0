@@ -49,6 +49,7 @@ public class Robot extends TimedRobot {
   private Iotake iotake=new Iotake();//Iotake is intake/outtake system
   private Arm arm=new Arm();
   private Lift rearLift=new Lift();
+  private Boolean climbing;
   private Hashtable<String,Integer> tuningValues;
   //private ExtendableMotor extendableintakeRight = new ExtendableMotor(intakeRight, 0.05, 1);
   
@@ -80,6 +81,7 @@ public class Robot extends TimedRobot {
     tuningValues.put("aDec",10);
     tuningValues.put("lTop",0);
     tuningValues.put("lBot",-10);
+    climbing=false;
     solenoid=new Solenoid(0);
     compressor=new Compressor(0); //DOUBLE CHECK IDS
   }
@@ -104,11 +106,11 @@ public class Robot extends TimedRobot {
     }
     //stop elevator at voltage dip
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation 
-    if ((((elevator.getState()==Elevator.State.activeUp||elevator.getState()==Elevator.State.activePID)&&Math.abs(elevator.getOutputCurrent())>30)||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>2.5)) && System.currentTimeMillis()>elevator.getActivationTime()+250){
+    if ((((elevator.getState()==Elevator.State.activeUp||elevator.getState()==Elevator.State.activePID)&&Math.abs(elevator.getOutputCurrent())>47)||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>3.5&&!climbing)||elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>35/*and climbing not necessary to specify*/) && System.currentTimeMillis()>elevator.getActivationTime()+250){
       elevatorOff();
       System.out.println("Elevator disabled from high output current");
     }
-    if (!(rearLift.getState()==Lift.State.off)&&Math.abs(rearLift.getOutputCurrent())>18 && System.currentTimeMillis()>rearLift.getActivationTime()+500){
+    if (!(rearLift.getState()==Lift.State.off)&&Math.abs(rearLift.getOutputCurrent())>37 && System.currentTimeMillis()>rearLift.getActivationTime()+500){
       liftOff();
       System.out.println("Rearlift disabled from high output current");
     }
@@ -119,13 +121,23 @@ public class Robot extends TimedRobot {
     //stop intake at voltage dip
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation
     //no abs value needed for this one because outtake doesn't need to be ended at a voltage spike
-    if (iotake.getState()==Iotake.State.activeIn&&iotake.getOutputCurrent()>20 && System.currentTimeMillis()>iotake.getActivationTime()+500){
+    if (iotake.getState()==Iotake.State.activeIn&&iotake.getOutputCurrent()>25 && System.currentTimeMillis()>iotake.getActivationTime()+500){
       iotakeOff();
       System.out.println("Outtake disabled from high output current");
     }
     //debug();
   }
 
+  //CLIMBING
+
+  /**Toggles climbing (changes elevator down current limit)
+   * 
+   * 
+   */
+  public void toggleClimbing(){
+    climbing=!climbing;
+    System.out.println("CLIMBING MODE SET TO "+String.valueOf(climbing)+" - CHANGE IN ELEVATOR DOWN CURRENT LIMIT");
+  }
 
   //DRIVE TYPE
 
@@ -184,15 +196,30 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorUp(){
-    elevator.up(.85);
+    elevator.up(1);
+  }
+
+  /**Moves elevator up with specified demand
+   * 
+   */
+  public void elevatorUp(double demand){
+    elevator.up(demand);
   }
 
   /**Moves elevator down
    * 
    */
   public void elevatorDown(){
-    elevator.down(.5);
+    elevator.down(.7);
   }
+
+  /**Moves elevator down with specified demand
+   * 
+   */
+  public void elevatorDown(double demand){
+    elevator.down(demand);
+  }
+
   //Not fuctional!
   public void elevatorTop(){
     elevator.moveToPos(10,1);
@@ -234,7 +261,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void liftUp(){
-    rearLift.up();
+    rearLift.up(.5);
   }
   
   /**Moves lift down
@@ -301,7 +328,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void outtake(){
-    iotake.outtake(.85);
+    iotake.outtake(.6);
   }
 
   /**Initiates intake

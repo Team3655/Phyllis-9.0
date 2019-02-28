@@ -28,6 +28,10 @@ public class JSBAdapter extends ButtonHandler{
             case 3:
                 robot.iotakeOff();
             break;
+            //button 4 toggles weather or not the robot is in climbing mode
+            case 4:
+                robot.toggleClimbing();
+            break;
             //button 7 switch drive type (one joystick/two joystick arcade)
             case 7:
                 if (robot.getDriveType()==Robot.driveType.oneJoystick){
