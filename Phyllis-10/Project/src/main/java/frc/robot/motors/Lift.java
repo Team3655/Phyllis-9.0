@@ -2,6 +2,7 @@ package frc.robot.motors;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 public class Lift extends TalonSRX{
@@ -21,10 +22,11 @@ public class Lift extends TalonSRX{
 		configPeakOutputForward(defaultDemand);
         configPeakOutputReverse(-defaultDemand);
         configAllowableClosedloopError(0, 0);
-        config_kF(2, 0.0);
-		config_kP(2, .15);
-		config_kI(2, 0.0);
-		config_kD(2, 1.0);
+        config_kF(0, 0.0);
+		config_kP(0, .15);
+		config_kI(0, 0.0);
+        config_kD(0, 1.0);
+        //setNeutralMode(NeutralMode.Brake);
     }
     public Lift(int id){
         super(id);
@@ -170,7 +172,7 @@ public class Lift extends TalonSRX{
     }
     public void printSensorPosition(){
         System.out.println("Sensor Position: "+getSelectedSensorPosition());
-        System.out.println("Target Position: "+getClosedLoopTarget());
+        System.out.println("Target Position: "+getClosedLoopTarget(0));
     }
     public double getActivationTime(){
         return activationTime;

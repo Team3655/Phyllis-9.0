@@ -7,6 +7,7 @@
 
 package frc.robot;
 
+import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -40,6 +41,7 @@ public class Robot extends TimedRobot {
   private JSBAdapter jsbAdapter;
   private TSBAdapter tsbAdapter;
   private Solenoid solenoid;
+  private long solenoidActivationTime;
   private Compressor compressor;
   private CANSparkMax leftFrontCAN=new CANSparkMax(10,CANSparkMaxLowLevel.MotorType.kBrushless);
   private CANSparkMax leftBackCAN=new CANSparkMax(11,CANSparkMaxLowLevel.MotorType.kBrushless);
@@ -50,7 +52,7 @@ public class Robot extends TimedRobot {
   private Arm arm=new Arm();
   private Lift rearLift=new Lift();
   private Boolean climbing;
-  private Hashtable<String,Integer> tuningValues;
+  private Hashtable<String,Double> tuningValues;
   //private ExtendableMotor extendableintakeRight = new ExtendableMotor(intakeRight, 0.05, 1);
   
 
@@ -58,7 +60,9 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() { 
-    CameraServer.getInstance().startAutomaticCapture();  
+    UsbCamera front=CameraServer.getInstance().startAutomaticCapture(0); 
+    //UsbCamera back=CameraServer.getInstance().startAutomaticCapture(1);
+    front.setResolution(80, 60);
     leftBackCAN.follow(leftFrontCAN);
     rightBackCAN.follow(rightFrontCAN);
     //rightFrontCAN.setRampRate(20);
@@ -71,19 +75,20 @@ public class Robot extends TimedRobot {
     jsbAdapter=new JSBAdapter(rightStick, this);
     tsbAdapter=new TSBAdapter(tractorPanel, this);
     tuningValues=new Hashtable<>();
-    tuningValues.put("eTop",10);
-    tuningValues.put("eBot",10);
-    tuningValues.put("eMid",10);
-    tuningValues.put("eDec",10);
-    tuningValues.put("aHat",10);
-    tuningValues.put("aBal",10);
-    tuningValues.put("aSit",10);
-    tuningValues.put("aDec",10);
-    tuningValues.put("lTop",0);
-    tuningValues.put("lBot",-10);
+    tuningValues.put("eTop",.1);
+    tuningValues.put("eBot",.1);
+    tuningValues.put("eMid",.1);
+    tuningValues.put("eDec",.1);
+    tuningValues.put("aHat",.1);
+    tuningValues.put("aBal",.1);
+    tuningValues.put("aSit",.1);
+    tuningValues.put("aDec",.1);
+    tuningValues.put("lTop",.1);
+    tuningValues.put("lBot",-.5);
     climbing=false;
     solenoid=new Solenoid(0);
     compressor=new Compressor(0); //DOUBLE CHECK IDS
+    solenoidActivationTime=0;
   }
 
   @Override
@@ -104,9 +109,21 @@ public class Robot extends TimedRobot {
       jsbAdapter.update();
       tsbAdapter.update();
     }
+    if (rearLift.getTemperature()>100){
+      rearLift.setNeutralMode(NeutralMode.Coast);
+      System.out.println("Rearlift nuetral mode changed to Coast because of high temperature of "+rearLift.getTemperature());
+    } else if (rearLift.getTemperature()>120){
+      rearLift.off();
+      System.out.println("Rearlift disabled from high temperature of "+rearLift.getTemperature());
+    }
+    if (solenoid.get()){
+      if (System.currentTimeMillis()>solenoidActivationTime+1000){
+        solenoid.set(false);
+      }
+    }
     //stop elevator at voltage dip
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation 
-    if ((((elevator.getState()==Elevator.State.activeUp||elevator.getState()==Elevator.State.activePID)&&Math.abs(elevator.getOutputCurrent())>47)||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>3.5&&!climbing)||elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>35/*and climbing not necessary to specify*/) && System.currentTimeMillis()>elevator.getActivationTime()+250){
+    if ((((elevator.getState()==Elevator.State.activeUp||elevator.getState()==Elevator.State.activePID)&&Math.abs(elevator.getOutputCurrent())>47)||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>6&&!climbing)||elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>50/*and climbing not necessary to specify*/) && System.currentTimeMillis()>elevator.getActivationTime()+250){
       elevatorOff();
       System.out.println("Elevator disabled from high output current");
     }
@@ -168,19 +185,24 @@ public class Robot extends TimedRobot {
 
 
   //TUNING
-  public int getTuningValue(String key){
+  public double getTuningValue(String key){
     return tuningValues.get(key);
   }
 
   public void setTuningValue(String key,int value){
+    tuningValues.replace(key,(double)value);
+  }
+  public void setTuningValue(String key,double value){
     tuningValues.replace(key,value);
   }
+
 
   //PNUEMATICS
 
   /**Activates/deactivates solenoid to fire hatch*/
   public void fireHatch(boolean on){
     solenoid.set(on);
+    solenoidActivationTime=System.currentTimeMillis();
   }
   /**Toggle compressor
    * 
@@ -222,11 +244,11 @@ public class Robot extends TimedRobot {
 
   //Not fuctional!
   public void elevatorTop(){
-    elevator.moveToPos(10,1);
+    elevator.moveToPos(tuningValues.get("eTop"),1);
   }
 
   public void elevatorBottom(){
-    elevator.moveToPos(0,.7);
+    elevator.moveToPos(tuningValues.get("eBot"),.7);
   }
   
   /**Moves elevator to middle possition
@@ -235,7 +257,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorMid(){
-    elevator.moveToPos(5,1);
+    elevator.moveToPos(tuningValues.get("eMid"),.1);
   }
   
   /**Moves elevator to deck position
@@ -244,7 +266,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorDeck(){
-    elevator.moveToPos(10,.1);
+    elevator.moveToPos(tuningValues.get("eDec"),.1);
   }
 
   /**turns off elevator
@@ -274,11 +296,11 @@ public class Robot extends TimedRobot {
    * 
    */
   public void liftRaise(){
-    rearLift.moveToPos(Preferences.getInstance().getDouble("liftRaise",-500),.3);
+    rearLift.moveToPos(tuningValues.get("lTop"),.3);
   }
 
   public void liftLower(){
-    rearLift.moveToPos(Preferences.getInstance().getDouble("liftLower",-1000),.3);
+    rearLift.moveToPos(tuningValues.get("lBot"),.3);
   }
   /**Turns lift off
    * 
@@ -302,19 +324,19 @@ public class Robot extends TimedRobot {
   }
 
   public void armSit(){
-    arm.moveToPos(Preferences.getInstance().getDouble("armSit",0),.3);
+    arm.moveToPos(tuningValues.get("aSit"),.1);
   }
 
   public void armDeck(){
-    arm.moveToPos(Preferences.getInstance().getDouble("armDeck",0),.3);
+    arm.moveToPos(tuningValues.get("aDec"),.1);
   }
 
   public void armHatch(){
-    arm.moveToPos(Preferences.getInstance().getDouble("armHatch",0),.3);
+    arm.moveToPos(tuningValues.get("aHat"),.1);
   }
 
   public void armBall(){
-    arm.moveToPos(Preferences.getInstance().getDouble("armBall",0),.3);
+    arm.moveToPos(tuningValues.get("aBal"),.1);
   }
 
   public void armOff(){

@@ -35,7 +35,7 @@ public class TSBAdapter extends ButtonHandler{
                     robot.elevatorDown();
                 break;
                 //button 2 moves elevator to bottom
-                case 2:
+                /*case 2:
                     robot.elevatorBottom();
                 break;
                 //button 3 moves elevator to middle
@@ -45,7 +45,7 @@ public class TSBAdapter extends ButtonHandler{
                 //button 7 moves elevator to top
                 case 7:
                     robot.elevatorTop();
-                break;
+                break;*/
                 //button 4 moves lift up
                 case 4:
                     robot.liftUp();;
@@ -55,13 +55,13 @@ public class TSBAdapter extends ButtonHandler{
                     robot.liftDown();
                 break;
                 //button 5 puts lift in raised position
-                case 5:
+                /*case 5:
                     robot.liftUp();
                 break;
                 //button 10 puts lift in lowered position
                 case 10:
                     robot.liftLower();
-                break;
+                break;*/
                 //button 11 moves arm up
                 case 11:
                     robot.armUp();
@@ -71,7 +71,7 @@ public class TSBAdapter extends ButtonHandler{
                     robot.armDown();
                 break;
                 //button 13 puts arm in ball position
-                case 13:
+                /*case 13:
                     robot.armBall();
                 break;
                 //button 15 puts arm in hatch position
@@ -85,7 +85,7 @@ public class TSBAdapter extends ButtonHandler{
                 //button 16 puts arm at sit height
                 case 16:
                     robot.armSit();
-                break;
+                break;*/
                 //button 17 initiates intake
                 case 17:
                     robot.intake();
@@ -126,27 +126,46 @@ public class TSBAdapter extends ButtonHandler{
             } else {
                 switch (no){
                     case 10:
+                        inputCache=inputCache+0;
+                        System.out.println("Input Cache: "+inputCache);
+                    break;
+                    case 11:
                         inputCache=inputCache.substring(0, inputCache.length()-1);
+                        System.out.println("Input Cache: "+inputCache);
+                    break;
+                    case 12:
+                        if (!inputCache.contains(".")){
+                            inputCache=inputCache+".";
+                            System.out.println("Input Cache: "+inputCache);
+                        }
+                    break;
+                    case 17:
+                        if (!inputCache.contains("-")){
+                            inputCache="-"+inputCache;
+                        } else {
+                            inputCache=inputCache.substring(1);
+                        }
                     break;
                     //Button 21 set value to input
                     case 21:
                         try {
-                            //robot.setProp(currentTuningValue, Integer.parseInt(inputCache));
+                            robot.setTuningValue(currentTuningValue, Double.parseDouble(inputCache));
                             System.out.println(currentTuningValue+" set to "+inputCache);
                             inputCache="";
                         } catch (NumberFormatException e){
                             //robot.setProp(currentTuningValue, 0);
                             System.err.println("User did not enter a number");
-                            System.err.println(currentTuningValue+" defaulted to 0");
-                            inputCache="";
+                            //System.err.println(currentTuningValue+" defaulted to 0");
+                            //inputCache="";
                         }
                     break;
                     case 25:
-                        //System.out.println("Current value of "+currentTuningValue+": "+robot.getProp(currentTuningValue));
+                        System.out.println("Current value of "+currentTuningValue+": "+robot.getTuningValue(currentTuningValue));
                     break;
                     //button 26 changes what property you are editing (++)
                     case 27:
-                        if (currentPropertyNo<9){
+                        currentPropertyNo++;
+                        if (currentPropertyNo>9){
                             currentPropertyNo=0;
                         }
                         currentTuningValue=tuningValues[currentPropertyNo];
@@ -171,8 +190,9 @@ public class TSBAdapter extends ButtonHandler{
     }
     public void buttonReleased(int no){
         switch (no){
-            case 20:
+            /*case 20:
             robot.fireHatch(false);
+            break;*/
             //button 1 moves elevator up
             case 1:
                 robot.elevatorOff();
