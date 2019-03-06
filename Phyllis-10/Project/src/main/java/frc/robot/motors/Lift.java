@@ -21,7 +21,7 @@ public class Lift extends TalonSRX{
 		configNominalOutputReverse(0);
 		configPeakOutputForward(defaultDemand);
         configPeakOutputReverse(-defaultDemand);
-        configAllowableClosedloopError(0, 0);
+        configAllowableClosedloopError(0, 10);
         config_kF(0, 0.0);
 		config_kP(0, .15);
 		config_kI(0, 0.0);

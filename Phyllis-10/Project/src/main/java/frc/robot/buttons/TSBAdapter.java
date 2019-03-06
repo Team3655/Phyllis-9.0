@@ -48,7 +48,7 @@ public class TSBAdapter extends ButtonHandler{
                 break;*/
                 //button 4 moves lift up
                 case 4:
-                    robot.liftUp();;
+                    robot.liftUp();
                 break;
                 //button 9 moves lift down
                 case 9:

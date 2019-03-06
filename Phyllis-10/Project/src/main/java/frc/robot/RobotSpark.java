@@ -26,7 +26,7 @@ import java.util.Hashtable;
 import com.ctre.phoenix.motorcontrol.*;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
-public class Robot extends TimedRobot {
+public class RobotSpark extends TimedRobot {
   
   
   //CLASS VARIABLES
@@ -53,8 +53,6 @@ public class Robot extends TimedRobot {
   private Lift rearLift=new Lift();
   private Boolean climbing;
   private Hashtable<String,Double> tuningValues;
-  private double Y;
-  private final double rampup=.1;
   //private ExtendableMotor extendableintakeRight = new ExtendableMotor(intakeRight, 0.05, 1);
   
 
@@ -65,17 +63,17 @@ public class Robot extends TimedRobot {
     UsbCamera front=CameraServer.getInstance().startAutomaticCapture(0); 
     //UsbCamera back=CameraServer.getInstance().startAutomaticCapture(1);
     front.setResolution(80, 60);
-    leftBackCAN.follow(leftFrontCAN);
+    //leftBackCAN.follow(leftFrontCAN);
     rightBackCAN.follow(rightFrontCAN);
     //rightFrontCAN.setRampRate(20);
     //leftFrontCAN.setRampRate(20);
-    robot = new DifferentialDrive(leftFrontCAN,rightFrontCAN);
+    robot = new DifferentialDrive(leftFrontCAN,leftBackCAN);
     leftStick = new Joystick(0);
     rightStick = new Joystick(1);
     xStick = leftStick;
     tractorPanel = new Joystick(2);
-    jsbAdapter=new JSBAdapter(rightStick, this);
-    tsbAdapter=new TSBAdapter(tractorPanel, this);
+    //jsbAdapter=new JSBAdapter(rightStick, this);
+    //tsbAdapter=new TSBAdapter(tractorPanel, this);
     tuningValues=new Hashtable<>();
     tuningValues.put("eTop",.1);
     tuningValues.put("eBot",.1);
@@ -87,13 +85,17 @@ public class Robot extends TimedRobot {
     tuningValues.put("aDec",.1);
     tuningValues.put("lTop",.1);
     tuningValues.put("lBot",-.5);
+    
     climbing=false;
     solenoid=new Solenoid(0);
     compressor=new Compressor(0); //DOUBLE CHECK IDS
     solenoidActivationTime=0;
   }
-
   @Override
+  public void teleopInit() {
+    leftFrontCAN.set(.5);
+    leftBackCAN.set(.5);
+  }
   public void teleopPeriodic() {
     periodic();
   }
@@ -102,25 +104,29 @@ public class Robot extends TimedRobot {
     super.autonomousPeriodic();
     periodic();
   }
+  public void disabledPeriodic(){
+    leftBackCAN.set(0);
+  }
   private void periodic(){
-    if (rightStick.getY()>.05&&Y<rampup){
-      Y-=rampup;
-      if (Y<-.75){
-        Y=.75;
-      }
-    } else if (rightStick.getY()<-.05&&Y>-rampup){
-      Y+=rampup;
-      if (Y>.75){
-        Y=.75;
-      }
-    }
     //driving arcade
-    robot.arcadeDrive(Y, xStick.getX()*.75);
+    robot.arcadeDrive(0, 1);
+    //leftBackCAN.set(.5);
+    CANPIDController p=leftBackCAN.getPIDController();
+    p.setP(1);
+    p.setD(.000000000001);
+    p.setI(0);
+    p.setFF(0);
+    p.setOutputRange(-.5, .5);
+    p.setReference(1, ControlType.kPosition);
+    System.out.println(leftBackCAN.getEncoder().getPosition());
+    
+    
+    
     //update button inputs
-    if (!(jsbAdapter.equals(null)&&tsbAdapter.equals(null))){
+    /*if (!(jsbAdapter.equals(null)&&tsbAdapter.equals(null))){
       jsbAdapter.update();
       tsbAdapter.update();
-    }
+    }*/
     if (rearLift.getTemperature()>100){
       rearLift.setNeutralMode(NeutralMode.Coast);
       System.out.println("Rearlift nuetral mode changed to Coast because of high temperature of "+rearLift.getTemperature());
