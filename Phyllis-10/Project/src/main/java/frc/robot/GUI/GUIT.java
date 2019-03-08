@@ -7,7 +7,7 @@ import javax.swing.JPanel;
 
 //Graphical user interface thread
 public class GUIT extends Thread{
-    private GPanel gPanel;
+    private static GPanel gPanel;
     @Override
     public void run(){
         JFrame f=new JFrame("Tractor Tech GUI");
@@ -19,7 +19,7 @@ public class GUIT extends Thread{
         f.pack();
         f.setVisible(true);
     }
-    public GPanel getGPanel(){
+    public static GPanel getGPanel(){
         return gPanel;
     }
 
