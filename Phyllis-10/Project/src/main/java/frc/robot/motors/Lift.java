@@ -4,31 +4,32 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.revrobotics.CANPIDController;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.ControlType;
 
-public class Lift extends TalonSRX{
+public class Lift extends CANSparkMax{
     public static enum State {activeUp,activeDown,off};
     private State state;
     private double defaultDemand;
     private double activationTime=0;
     public Lift(){
-        super(22);
+        super(22,MotorType.kBrushless);
         defaultDemand=.75;
         state=State.off;
-        configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        setSensorPhase(false);
-        setSelectedSensorPosition(0);
-        configNominalOutputForward(0);
-		configNominalOutputReverse(0);
-		configPeakOutputForward(defaultDemand);
-        configPeakOutputReverse(-defaultDemand);
-        configAllowableClosedloopError(0, 10);
-        config_kF(0, 0.0);
-		config_kP(0, .15);
-		config_kI(0, 0.0);
-        config_kD(0, 1.0);
-        //setNeutralMode(NeutralMode.Brake);
+        getEncoder().setPosition(0);
+        CANPIDController p=getPIDController();
+        p.setP(1);
+        p.setD(0);
+        p.setI(0);
+        p.setFF(0);
+        p.setOutputRange(-.5, .5);
+        //leftBackCAN.setParameter(ConfigParameter.), value)
+        p.setReference(10.75, ControlType.kPosition);
+    
+    
     }
-    public Lift(int id){
+    /*public Lift(int id){
         super(id);
         defaultDemand=.75;
         state=State.off;
@@ -61,13 +62,13 @@ public class Lift extends TalonSRX{
 		config_kP(2, .15);
 		config_kI(2, 0.0);
 		config_kD(2, 1.0);
-    }
+    }*/
     /**Moves rear lift up at <code>defaultDemand</code> (.75 at default) percent demand
      * 
      */
     public void up(){
         if (!(state==State.activeUp)){
-            set(ControlMode.PercentOutput, defaultDemand);
+            set(Math.abs(defaultDemand));
             state = State.activeUp;
             activationTime = System.currentTimeMillis();
         }
@@ -79,20 +80,8 @@ public class Lift extends TalonSRX{
      */
     public void up(double demand){
         if (!(state==State.activeUp)){
-            set(ControlMode.PercentOutput, Math.abs(demand));
+            set(Math.abs(demand));
             state = State.activeUp;
-            activationTime = System.currentTimeMillis();
-        }
-    }
-    /**Moves rear lift up with control mode <code>Mode</code>
-     * The absolute value of <code>demand</code> is used (rear lift will only move up)
-     * @param demand
-     * @param Mode
-     */
-    public void up(ControlMode Mode, double demand){
-        if (!(state==State.activeUp)){
-            set(Mode, Math.abs(demand));
-            state=State.activeUp;
             activationTime = System.currentTimeMillis();
         }
     }
@@ -101,7 +90,7 @@ public class Lift extends TalonSRX{
      */
     public void down(){
         if (!(state==State.activeDown)){
-            set(ControlMode.PercentOutput,-1*Math.abs(defaultDemand));
+            set(-1*Math.abs(defaultDemand));
             state = State.activeDown;
             activationTime = System.currentTimeMillis();
         }
@@ -113,25 +102,13 @@ public class Lift extends TalonSRX{
      */
     public void down(double demand){
         if (!(state==State.activeDown)){
-            set(ControlMode.PercentOutput,-1*Math.abs(demand));
-            state = State.activeDown;
-            activationTime = System.currentTimeMillis();
-        }
-    }
-    /**Moves rear lift down with control mode <code>Mode</code>
-     * The negative absolute value of <code>demand</code> is used (rear lift will only move down)
-     * @param demand
-     * @param Mode
-     */
-    public void down(ControlMode Mode, double demand){
-        if (!(state==State.activeDown)){
-            set(Mode, -1*Math.abs(demand));
+            set(-1*Math.abs(demand));
             state = State.activeDown;
             activationTime = System.currentTimeMillis();
         }
     }
     public void off(){
-        set(ControlMode.PercentOutput,0);
+        set(0);
         state = State.off;
     }
     public void moveToPos(int pos){
@@ -139,12 +116,12 @@ public class Lift extends TalonSRX{
         configPeakOutputReverse(-defaultDemand);
         if (pos>getSelectedSensorPosition()){
             state=State.activeUp;
-        } else if(pos<getSelectedSensorPosition()){
+        } else if(pos<getEncoder.pos){
             state=State.activeDown;
         } else {
             state=State.off;
         }
-        set(ControlMode.Position,pos);
+        getPIDController().setReference(pos,ControlType.kPosition);
     }
     public void moveToPos(double pos){
         configPeakOutputForward(defaultDemand);

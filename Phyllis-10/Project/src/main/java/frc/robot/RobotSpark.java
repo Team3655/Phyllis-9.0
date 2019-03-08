@@ -64,9 +64,10 @@ public class RobotSpark extends TimedRobot {
     //UsbCamera back=CameraServer.getInstance().startAutomaticCapture(1);
     front.setResolution(80, 60);
     //leftBackCAN.follow(leftFrontCAN);
-    rightBackCAN.follow(rightFrontCAN);
     //rightFrontCAN.setRampRate(20);
     //leftFrontCAN.setRampRate(20);
+    leftBackCAN.restoreFactoryDefaults();
+    rightBackCAN.restoreFactoryDefaults();
     robot = new DifferentialDrive(leftFrontCAN,leftBackCAN);
     leftStick = new Joystick(0);
     rightStick = new Joystick(1);
@@ -85,7 +86,7 @@ public class RobotSpark extends TimedRobot {
     tuningValues.put("aDec",.1);
     tuningValues.put("lTop",.1);
     tuningValues.put("lBot",-.5);
-    
+    rightBackCAN.getPIDController().setReference(0, ControlType.kPosition);
     climbing=false;
     solenoid=new Solenoid(0);
     compressor=new Compressor(0); //DOUBLE CHECK IDS
@@ -93,8 +94,8 @@ public class RobotSpark extends TimedRobot {
   }
   @Override
   public void teleopInit() {
-    leftFrontCAN.set(.5);
-    leftBackCAN.set(.5);
+    //leftFrontCAN.set(.5);
+    //leftBackCAN.set(.5);
   }
   public void teleopPeriodic() {
     periodic();
@@ -105,20 +106,26 @@ public class RobotSpark extends TimedRobot {
     periodic();
   }
   public void disabledPeriodic(){
-    leftBackCAN.set(0);
+    rightBackCAN.set(0);
+    System.out.println("GET:"+rightBackCAN.get());
+    System.out.println("ENCODER:"+rightBackCAN.getEncoder().getPosition());
+    //robot.arcadeDrive(0, 0);
   }
   private void periodic(){
     //driving arcade
-    robot.arcadeDrive(0, 1);
-    //leftBackCAN.set(.5);
-    CANPIDController p=leftBackCAN.getPIDController();
+    //robot.arcadeDrive(0, 1);
+    //rightBackCAN.set(1);
+    CANPIDController p=rightBackCAN.getPIDController();
     p.setP(1);
-    p.setD(.000000000001);
+    p.setD(0);
     p.setI(0);
     p.setFF(0);
     p.setOutputRange(-.5, .5);
-    p.setReference(1, ControlType.kPosition);
-    System.out.println(leftBackCAN.getEncoder().getPosition());
+    //leftBackCAN.setParameter(ConfigParameter.), value)
+    p.setReference(10.75, ControlType.kPosition);
+    
+    System.out.println("GET:"+rightBackCAN.get());
+    System.out.println("ENCODER:"+rightBackCAN.getEncoder().getPosition());
     
     
     
