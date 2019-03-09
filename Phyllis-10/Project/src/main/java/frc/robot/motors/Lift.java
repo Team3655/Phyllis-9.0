@@ -25,9 +25,7 @@ public class Lift extends CANSparkMax{
         p.setD(0);
         p.setI(0);
         p.setFF(0);
-        p.setOutputRange(-.5, .5);
-        //leftBackCAN.setParameter(ConfigParameter.), value)
-        p.setReference(10.75, ControlType.kPosition);
+        p.setOutputRange(.75, .75);
         
     
     }
@@ -68,6 +66,13 @@ public class Lift extends CANSparkMax{
     /**Moves rear lift up at <code>defaultDemand</code> (.75 at default) percent demand
      * 
      */
+    /**Sets default demand of motor
+     * 
+     * @param defaultDemand
+     */
+    public void setDefaultDemand(double defaultDemand){
+        this.defaultDemand=defaultDemand;
+    }
     public void up(){
         if (!(state==State.activeUp)){
             set(Math.abs(defaultDemand));
@@ -114,17 +119,21 @@ public class Lift extends CANSparkMax{
         state = State.off;
     }
     public void moveToPos(int pos){
+        set(0);
+        targetPosition=pos;
         p.setOutputRange(-1*Math.abs(defaultDemand), Math.abs(defaultDemand));
         state=State.activePID;
         p.setReference(pos,ControlType.kPosition);
     }
     public void moveToPos(double pos){
+        set(0);
         targetPosition=pos;
         p.setOutputRange(-1*Math.abs(defaultDemand), Math.abs(defaultDemand));
         state=State.activePID;
         p.setReference(pos,ControlType.kPosition);
     }
     public void moveToPos(double pos,double demand){
+        set(0);
         targetPosition=pos;
         p.setOutputRange(-1*Math.abs(demand), Math.abs(demand));
         state=State.activePID;

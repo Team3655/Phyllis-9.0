@@ -4,75 +4,65 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.TalonSRXPIDSetConfiguration;
+import com.revrobotics.CANPIDController;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.ControlType;
 
 import edu.wpi.first.wpilibj.PIDController;
 
-public class Elevator extends TalonSRX {
+public class Elevator extends CANSparkMax {
     public static enum State {activeUp,activeDown,activePID,off};
     private State state;
     private double defaultDemand;
     private double activationTime=0;
-    private PIDConf elevator;
+    private double targetPosition;
+    private CANPIDController p;
     /**Constructs a new elevator with an id of 21 and a default demand percent of .75
      * 
      */
     public Elevator(){
-        super(21);
-        defaultDemand = .75;
-        state = State.off;
-        configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        setSelectedSensorPosition(0);
-        configNominalOutputForward(0);
-		configNominalOutputReverse(0);
-		configPeakOutputForward(defaultDemand);
-        configPeakOutputReverse(-defaultDemand);
-        configAllowableClosedloopError(0, 0);
-        config_kF(0, 0.0);
-		config_kP(0, 1);
-		config_kI(0, 0.0);
-        config_kD(0, 0);
-        elevator=new PIDConf(this,true);
+        super(21,MotorType.kBrushless);
+        defaultDemand=.75;
+        state=State.off;
+        getEncoder().setPosition(0);
+        p=getPIDController();
+        p.setP(1);
+        p.setD(0);
+        p.setI(0);
+        p.setFF(0);
+        p.setOutputRange(.75, .75);
     }
     /**Constructs a new elevator with an id of <code>id</code> and a default demand percent of .75
      * 
      * @param id
      */
     public Elevator(int id){
-        super(id);
-        defaultDemand = .75;
-        state = State.off;
-        configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        setSelectedSensorPosition(0);
-        configNominalOutputForward(0);
-		configNominalOutputReverse(0);
-		configPeakOutputForward(defaultDemand);
-        configPeakOutputReverse(-defaultDemand);
-        configAllowableClosedloopError(0, 0);
-        config_kF(0, 0.0);
-		config_kP(0, .15);
-		config_kI(0, 0.0);
-		config_kD(0, 1.0);
+        super(id,MotorType.kBrushless);
+        defaultDemand=.75;
+        state=State.off;
+        getEncoder().setPosition(0);
+        p=getPIDController();
+        p.setP(1);
+        p.setD(0);
+        p.setI(0);
+        p.setFF(0);
+        p.setOutputRange(.75, .75);
     }
     /**Constructs a new elevator with an id of 21 and a default demand percent of <code>defaultDemand</code>
      * 
      * @param defaultDemand
      */
     public Elevator(double defaultDemand){
-        super(21);
-        this.defaultDemand=Math.abs(defaultDemand);
-        state = State.off;
-        configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        setSensorPhase(false);
-        setSelectedSensorPosition(0);
-        configNominalOutputForward(0);
-		configNominalOutputReverse(0);
-		configPeakOutputForward(1);
-        configPeakOutputReverse(-1);
-        configAllowableClosedloopError(0, 0);
-        config_kF(0, 0.0);
-		config_kP(0, .15);
-		config_kI(0, 0.0);
-		config_kD(0, 1.0);
+        super(21,MotorType.kBrushless);
+        this.defaultDemand=defaultDemand;
+        state=State.off;
+        getEncoder().setPosition(0);
+        p=getPIDController();
+        p.setP(1);
+        p.setD(0);
+        p.setI(0);
+        p.setFF(0);
+        p.setOutputRange(defaultDemand, defaultDemand);
     }
     /**Constructs a new elevator with an id of <code>id</code> and a default demand percent of <code>defaultDemand</code>
      * 
@@ -80,59 +70,43 @@ public class Elevator extends TalonSRX {
      * @param defaultDemand
      */
     public Elevator(int id, double defaultDemand){
-        super(id);
-        this.defaultDemand=Math.abs(defaultDemand);
-        state = State.off;
-        configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
-        setSensorPhase(false);
-        setSelectedSensorPosition(0);
-        configNominalOutputForward(0);
-		configNominalOutputReverse(0);
-		configPeakOutputForward(1);
-        configPeakOutputReverse(-1);
-        configAllowableClosedloopError(0, 0);
-        config_kF(0, 0.0);
-		config_kP(0, .15);
-		config_kI(0, 0.0);
-		config_kD(0, 1.0);
+        super(id,MotorType.kBrushless);
+        this.defaultDemand=defaultDemand;
+        state=State.off;
+        getEncoder().setPosition(0);
+        p=getPIDController();
+        p.setP(1);
+        p.setD(0);
+        p.setI(0);
+        p.setFF(0);
+        p.setOutputRange(defaultDemand, defaultDemand);
+    }
+    /**Sets default demand of motor
+     * 
+     * @param defaultDemand
+     */
+    public void setDefaultDemand(double defaultDemand){
+        this.defaultDemand=defaultDemand;
     }
     /**Moves elevator up at <code>defaultDemand</code> (.75 at default) percent demand
      * 
      */
     public void up(){
         if (!(state==State.activeUp)){
-            configPeakOutputForward(1);
-            configPeakOutputReverse(-1);
-            set(ControlMode.PercentOutput, defaultDemand);
+            set(Math.abs(defaultDemand));
             state = State.activeUp;
             activationTime = System.currentTimeMillis();
         }
     }
     /**Moves elevator up
      * Uses percent output for control mode of set function
-     * The absolute value of <code>demand</code> is used (Elevator will only move up)
+     * The absolute value of <code>demand</code> is used (elevator will only move up)
      * @param demand
      */
     public void up(double demand){
         if (!(state==State.activeUp)){
-            configPeakOutputForward(1);
-            configPeakOutputReverse(-1);
-            set(ControlMode.PercentOutput, Math.abs(demand));
+            set(Math.abs(demand));
             state = State.activeUp;
-            activationTime = System.currentTimeMillis();
-        }
-    }
-    /**Moves elevator up with control mode <code>Mode</code>
-     * The absolute value of <code>demand</code> is used (Elevator will only move up)
-     * @param demand
-     * @param Mode
-     */
-    public void up(ControlMode Mode, double demand){
-        if (!(state==State.activeUp)){
-            configPeakOutputForward(1);
-            configPeakOutputReverse(-1);
-            set(Mode, Math.abs(demand));
-            state=State.activeUp;
             activationTime = System.currentTimeMillis();
         }
     }
@@ -141,61 +115,51 @@ public class Elevator extends TalonSRX {
      */
     public void down(){
         if (!(state==State.activeDown)){
-            configPeakOutputForward(1);
-            configPeakOutputReverse(-1);
-            set(ControlMode.PercentOutput,-1*Math.abs(defaultDemand));
+            set(-1*Math.abs(defaultDemand));
             state = State.activeDown;
             activationTime = System.currentTimeMillis();
         }
     }
     /**Moves elevator down
      * Uses percent output for control mode of set function
-     * The negative absolute value of <code>demand</code> is used (Elevator will only move down)
+     * The negative absolute value of <code>demand</code> is used (elevator will only move down)
      * @param demand
      */
     public void down(double demand){
         if (!(state==State.activeDown)){
-            configPeakOutputForward(1);
-        configPeakOutputReverse(-1);
-            set(ControlMode.PercentOutput,-1*Math.abs(demand));
-            state = State.activeDown;
-            activationTime = System.currentTimeMillis();
-        }
-    }
-    /**Moves elevator down with control mode <code>Mode</code>
-     * The negative absolute value of <code>demand</code> is used (Elevator will only move down)
-     * @param demand
-     * @param Mode
-     */
-    public void down(ControlMode Mode, double demand){
-        configPeakOutputForward(1);
-        configPeakOutputReverse(-1);
-        if (!(state==State.activeDown)){
-            set(Mode, -1*Math.abs(demand));
+            set(-1*Math.abs(demand));
             state = State.activeDown;
             activationTime = System.currentTimeMillis();
         }
     }
     public void off(){
-        set(ControlMode.PercentOutput,0);
+        set(0);
         state = State.off;
     }
     public void moveToPos(int pos){
+        set(0);
+        targetPosition=pos;
+        p.setOutputRange(-1*Math.abs(defaultDemand), Math.abs(defaultDemand));
         state=State.activePID;
-        elevator.moveRotations(pos,defaultDemand);
+        p.setReference(pos,ControlType.kPosition);
     }
     public void moveToPos(double pos){
-        elevator.moveRotations(2,defaultDemand);
+        set(0);
+        targetPosition=pos;
+        p.setOutputRange(-1*Math.abs(defaultDemand), Math.abs(defaultDemand));
         state=State.activePID;
+        p.setReference(pos,ControlType.kPosition);
     }
     public void moveToPos(double pos,double demand){
+        set(0);
+        targetPosition=pos;
+        p.setOutputRange(-1*Math.abs(demand), Math.abs(demand));
         state=State.activePID;
-        elevator.moveRotations(pos,demand);
+        p.setReference(pos,ControlType.kPosition);
     }
     public void printSensorPosition(){
-        System.out.println("Sensor Position: "+getSelectedSensorPosition());
-        System.out.println("Sensor Pulse Position: "+elevator.getEncoderPosition());
-        System.out.println("Target Position: "+getClosedLoopTarget());
+        System.out.println("Sensor Position: "+getEncoder());
+        if (state==State.activePID) System.out.println("Target Position: "+targetPosition);
     }
     public double getActivationTime(){
         return activationTime;

@@ -66,6 +66,13 @@ public class Iotake {
         this.defaultDemand=defaultDemand;
         state = State.off;
     }
+    /**Sets default demand of motor
+     * 
+     * @param defaultDemand
+     */
+    public void setDefaultDemand(double defaultDemand){
+        this.defaultDemand=defaultDemand;
+    }
     //sorry this isn't commented as well as elevator
     public void intake(){
         if (!(state==State.activeIn)){

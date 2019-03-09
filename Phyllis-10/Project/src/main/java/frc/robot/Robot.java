@@ -62,9 +62,12 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() { 
+    
     UsbCamera front=CameraServer.getInstance().startAutomaticCapture(0); 
+    if (front.isConnected()==false){
+      front.close();
+    }
     //UsbCamera back=CameraServer.getInstance().startAutomaticCapture(1);
-    front.setResolution(80, 60);
     leftBackCAN.follow(leftFrontCAN);
     rightBackCAN.follow(rightFrontCAN);
     //rightFrontCAN.setRampRate(20);
@@ -87,6 +90,15 @@ public class Robot extends TimedRobot {
     tuningValues.put("aDec",.1);
     tuningValues.put("lTop",.1);
     tuningValues.put("lBot",-.5);
+
+    tuningValues.put("eSpdUp",.8);
+    tuningValues.put("eSpdDow",.6);
+    tuningValues.put("lSpdUp",.6);
+    tuningValues.put("lSpdDow",.4);
+
+    tuningValues.put("eCurUp",20.0);
+    tuningValues.put("eCurDow", 3.0);
+    tuningValues.put("eCurPID", 10.0);
     climbing=false;
     solenoid=new Solenoid(0);
     compressor=new Compressor(0); //DOUBLE CHECK IDS
@@ -121,19 +133,18 @@ public class Robot extends TimedRobot {
       jsbAdapter.update();
       tsbAdapter.update();
     }
-    if (rearLift.getTemperature()>100){
-      rearLift.setNeutralMode(NeutralMode.Coast);
-      System.out.println("Rearlift nuetral mode changed to Coast because of high temperature of "+rearLift.getTemperature());
-    } else if (rearLift.getTemperature()>120){
+    if (rearLift.getMotorTemperature()>100){
+      System.err.println("WARNING: Rear lift high temperature of "+rearLift.getMotorTemperature());
+    } else if (rearLift.getMotorTemperature()>200){
       rearLift.off();
-      System.out.println("Rearlift disabled from high temperature of "+rearLift.getTemperature());
+      System.out.println("Rearlift disabled from high temperature of "+rearLift.getMotorTemperature());
     }
     if (solenoid.get()){
       if (System.currentTimeMillis()>solenoidActivationTime+1000){
         solenoid.set(false);
       }
     }
-    //stop elevator at voltage dip
+    //stop elevator at current spike
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation 
     if ((((elevator.getState()==Elevator.State.activeUp||elevator.getState()==Elevator.State.activePID)&&Math.abs(elevator.getOutputCurrent())>47)||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>6&&!climbing)||elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>50/*and climbing not necessary to specify*/) && System.currentTimeMillis()>elevator.getActivationTime()+250){
       elevatorOff();
@@ -147,7 +158,7 @@ public class Robot extends TimedRobot {
       armOff();
       System.out.println("Arm disabled from high output current");
     }
-    //stop intake at voltage dip
+    //stop intake at voltage spike
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation
     //no abs value needed for this one because outtake doesn't need to be ended at a voltage spike
     if (iotake.getState()==Iotake.State.activeIn&&iotake.getOutputCurrent()>25 && System.currentTimeMillis()>iotake.getActivationTime()+500){
@@ -254,6 +265,10 @@ public class Robot extends TimedRobot {
     elevator.down(demand);
   }
 
+  public void elevatorHoldPos(){
+    elevator.moveToPos(elevator.getEncoder().getPosition());
+  }
+
   //Not fuctional!
   public void elevatorTop(){
     elevator.moveToPos(tuningValues.get("eTop"),1);
@@ -304,6 +319,9 @@ public class Robot extends TimedRobot {
   public void liftDown(){
     rearLift.down();
   }
+  public void liftHoldPos(){
+    rearLift.moveToPos(rearLift.getEncoder().getPosition());
+  }
   /**Moves lift to raised position
    * 
    */
@@ -333,6 +351,10 @@ public class Robot extends TimedRobot {
 
   public void armDown(){
     arm.down(.5);
+  }
+
+  public void armHoldPos(){
+    arm.moveToPos(arm.getEncoder().getPosition());
   }
 
   public void armSit(){
