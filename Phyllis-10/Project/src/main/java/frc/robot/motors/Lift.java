@@ -9,16 +9,18 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.ControlType;
 
 public class Lift extends CANSparkMax{
-    public static enum State {activeUp,activeDown,off};
+    public static enum State {activeUp,activeDown,activePID,off};
     private State state;
     private double defaultDemand;
     private double activationTime=0;
+    private double targetPosition;
+    private CANPIDController p;
     public Lift(){
         super(22,MotorType.kBrushless);
         defaultDemand=.75;
         state=State.off;
         getEncoder().setPosition(0);
-        CANPIDController p=getPIDController();
+        p=getPIDController();
         p.setP(1);
         p.setD(0);
         p.setI(0);
@@ -26,7 +28,7 @@ public class Lift extends CANSparkMax{
         p.setOutputRange(-.5, .5);
         //leftBackCAN.setParameter(ConfigParameter.), value)
         p.setReference(10.75, ControlType.kPosition);
-    
+        
     
     }
     /*public Lift(int id){
@@ -112,44 +114,25 @@ public class Lift extends CANSparkMax{
         state = State.off;
     }
     public void moveToPos(int pos){
-        configPeakOutputForward(defaultDemand);
-        configPeakOutputReverse(-defaultDemand);
-        if (pos>getSelectedSensorPosition()){
-            state=State.activeUp;
-        } else if(pos<getEncoder.pos){
-            state=State.activeDown;
-        } else {
-            state=State.off;
-        }
-        getPIDController().setReference(pos,ControlType.kPosition);
+        p.setOutputRange(-1*Math.abs(defaultDemand), Math.abs(defaultDemand));
+        state=State.activePID;
+        p.setReference(pos,ControlType.kPosition);
     }
     public void moveToPos(double pos){
-        configPeakOutputForward(defaultDemand);
-        configPeakOutputReverse(-defaultDemand);
-        if (pos>getSelectedSensorPosition()){
-            state=State.activeUp;
-        } else if(pos<getSelectedSensorPosition()){
-            state=State.activeDown;
-        } else {
-            state=State.off;
-        }
-        set(ControlMode.Position,pos);
+        targetPosition=pos;
+        p.setOutputRange(-1*Math.abs(defaultDemand), Math.abs(defaultDemand));
+        state=State.activePID;
+        p.setReference(pos,ControlType.kPosition);
     }
     public void moveToPos(double pos,double demand){
-        configPeakOutputForward(demand);
-        configPeakOutputReverse(-demand);
-        if (pos>getSelectedSensorPosition()){
-            state=State.activeUp;
-        } else if(pos<getSelectedSensorPosition()){
-            state=State.activeDown;
-        } else {
-            state=State.off;
-        }
-        set(ControlMode.Position,pos);
+        targetPosition=pos;
+        p.setOutputRange(-1*Math.abs(demand), Math.abs(demand));
+        state=State.activePID;
+        p.setReference(pos,ControlType.kPosition);
     }
     public void printSensorPosition(){
-        System.out.println("Sensor Position: "+getSelectedSensorPosition());
-        System.out.println("Target Position: "+getClosedLoopTarget(0));
+        System.out.println("Sensor Position: "+getEncoder());
+        if (state==State.activePID) System.out.println("Target Position: "+targetPosition);
     }
     public double getActivationTime(){
         return activationTime;
