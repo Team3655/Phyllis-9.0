@@ -20,12 +20,9 @@ import frc.robot.motors.Iotake;
 import frc.robot.motors.Lift;
 
 import com.revrobotics.*;
+import com.revrobotics.CANSparkMax.IdleMode;
 
 import java.util.Hashtable;
-
-import com.ctre.phoenix.motorcontrol.*;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-
 public class Robot extends TimedRobot {
   
   
@@ -48,6 +45,7 @@ public class Robot extends TimedRobot {
   private CANSparkMax rightFrontCAN=new CANSparkMax(13,CANSparkMaxLowLevel.MotorType.kBrushless);
   private CANSparkMax rightBackCAN=new CANSparkMax(12,CANSparkMaxLowLevel.MotorType.kBrushless);
   private Elevator elevator=new Elevator();
+  private CANSparkMax elevatorF=new CANSparkMax(20, CANSparkMaxLowLevel.MotorType.kBrushless);
   private Iotake iotake=new Iotake();//Iotake is intake/outtake system
   private Arm arm=new Arm();
   private Lift rearLift=new Lift();
@@ -70,9 +68,14 @@ public class Robot extends TimedRobot {
     //UsbCamera back=CameraServer.getInstance().startAutomaticCapture(1);
     leftBackCAN.follow(leftFrontCAN);
     rightBackCAN.follow(rightFrontCAN);
-    //rightFrontCAN.setRampRate(20);
-    //leftFrontCAN.setRampRate(20);
+    elevatorF.follow(elevator);
+    //rightFrontCAN.setOpenLoopRampRate(10);
+    //leftFrontCAN.setOpenLoopRampRate(10);
     robot = new DifferentialDrive(leftFrontCAN,rightFrontCAN);
+    elevator.setIdleMode(IdleMode.kBrake);
+    elevatorF.setIdleMode(IdleMode.kBrake);
+    rearLift.setIdleMode(IdleMode.kBrake);
+    arm.setIdleMode(IdleMode.kBrake);
     leftStick = new Joystick(0);
     rightStick = new Joystick(1);
     xStick = leftStick;
@@ -95,19 +98,33 @@ public class Robot extends TimedRobot {
     tuningValues.put("eSpdDow",.6);
     tuningValues.put("lSpdUp",.6);
     tuningValues.put("lSpdDow",.4);
+    tuningValues.put("aSpd",.7);
 
-    tuningValues.put("eCurUp",20.0);
-    tuningValues.put("eCurDow", 3.0);
-    tuningValues.put("eCurPID", 10.0);
+    tuningValues.put("eCurUp",52.0);
+    tuningValues.put("eCurDow", 8.0);
+    tuningValues.put("eCurPID", 60.0);
+    tuningValues.put("lCur", 32.0);
+    tuningValues.put("aCur", 17.0);
     climbing=false;
     solenoid=new Solenoid(0);
     compressor=new Compressor(0); //DOUBLE CHECK IDS
     solenoidActivationTime=0;
   }
-
+  @Override
+  public void teleopInit() {
+    if (!(tsbAdapter==null)){
+      tsbAdapter.setMode(TSBAdapter.Mode.RobotResponse);
+    }
+  }
   @Override
   public void teleopPeriodic() {
     periodic();
+  }
+  @Override
+  public void autonomousInit() {
+    if (!(tsbAdapter==null)){
+      tsbAdapter.setMode(TSBAdapter.Mode.RobotResponse);
+    }
   }
   @Override
   public void autonomousPeriodic() {
@@ -115,19 +132,8 @@ public class Robot extends TimedRobot {
     periodic();
   }
   private void periodic(){
-    if (rightStick.getY()>.05&&Y<rampup){
-      Y-=rampup;
-      if (Y<-.75){
-        Y=.75;
-      }
-    } else if (rightStick.getY()<-.05&&Y>-rampup){
-      Y+=rampup;
-      if (Y>.75){
-        Y=.75;
-      }
-    }
     //driving arcade
-    robot.arcadeDrive(Y, xStick.getX()*.75);
+    robot.arcadeDrive(rightStick.getY(), xStick.getX()*.75);
     //update button inputs
     if (!(jsbAdapter.equals(null)&&tsbAdapter.equals(null))){
       jsbAdapter.update();
@@ -146,17 +152,17 @@ public class Robot extends TimedRobot {
     }
     //stop elevator at current spike
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation 
-    if ((((elevator.getState()==Elevator.State.activeUp||elevator.getState()==Elevator.State.activePID)&&Math.abs(elevator.getOutputCurrent())>47)||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>6&&!climbing)||elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>50/*and climbing not necessary to specify*/) && System.currentTimeMillis()>elevator.getActivationTime()+250){
+    if (((elevator.getState()==Elevator.State.activeUp&&Math.abs(elevator.getOutputCurrent())>tuningValues.get("eCurUp"))||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>tuningValues.get("eCurDow")&&!climbing)||(elevator.getState()==Elevator.State.activePID&&elevator.getOutputCurrent()>tuningValues.get("eCurPID"))||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>50/*and climbing not necessary to specify*/)) && System.currentTimeMillis()>elevator.getActivationTime()+250){
       elevatorOff();
-      System.out.println("Elevator disabled from high output current");
+      System.out.println("Elevator disabled from high output current of "+elevator.getOutputCurrent());
     }
-    if (!(rearLift.getState()==Lift.State.off)&&Math.abs(rearLift.getOutputCurrent())>37 && System.currentTimeMillis()>rearLift.getActivationTime()+500){
+    if (!(rearLift.getState()==Lift.State.off)&&Math.abs(rearLift.getOutputCurrent())>tuningValues.get("lCur") && System.currentTimeMillis()>rearLift.getActivationTime()+500){
       liftOff();
-      System.out.println("Rearlift disabled from high output current");
+      System.out.println("Rearlift disabled from high output current of "+rearLift.getOutputCurrent());
     }
     if (!(arm.getState()==Arm.State.off)&&Math.abs(arm.getOutputCurrent())>17 && System.currentTimeMillis()>arm.getActivationTime()+500){
       armOff();
-      System.out.println("Arm disabled from high output current");
+      System.out.println("Arm disabled from high output current of "+arm.getOutputCurrent());
     }
     //stop intake at voltage spike
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation
@@ -166,6 +172,16 @@ public class Robot extends TimedRobot {
       System.out.println("Outtake disabled from high output current");
     }
     //debug();
+  }
+  @Override
+  public void disabledInit() {
+    if (!(tsbAdapter==null)){
+      tsbAdapter.setMode(TSBAdapter.Mode.Tune);
+    }
+  }
+  @Override
+  public void disabledPeriodic() {
+    tsbAdapter.update();
   }
 
   //CLIMBING
@@ -241,7 +257,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorUp(){
-    elevator.up(1);
+    elevator.up(tuningValues.get("eSpdUp"));
   }
 
   /**Moves elevator up with specified demand
@@ -255,7 +271,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorDown(){
-    elevator.down(.7);
+    elevator.down(tuningValues.get("eSpdDow"));
   }
 
   /**Moves elevator down with specified demand
@@ -266,16 +282,17 @@ public class Robot extends TimedRobot {
   }
 
   public void elevatorHoldPos(){
+    elevator.off();
     elevator.moveToPos(elevator.getEncoder().getPosition());
   }
 
   //Not fuctional!
   public void elevatorTop(){
-    elevator.moveToPos(tuningValues.get("eTop"),1);
+    elevator.moveToPos(tuningValues.get("eTop"),tuningValues.get("eSpdDow"));
   }
 
   public void elevatorBottom(){
-    elevator.moveToPos(tuningValues.get("eBot"),.7);
+    elevator.moveToPos(tuningValues.get("eBot"),tuningValues.get("eSpdDow"));
   }
   
   /**Moves elevator to middle possition
@@ -284,7 +301,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorMid(){
-    elevator.moveToPos(tuningValues.get("eMid"),.1);
+    elevator.moveToPos(tuningValues.get("eMid"),tuningValues.get("eSpdDow"));
   }
   
   /**Moves elevator to deck position
@@ -293,7 +310,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorDeck(){
-    elevator.moveToPos(tuningValues.get("eDec"),.1);
+    elevator.moveToPos(tuningValues.get("eDec"),tuningValues.get("eSpdDow"));
   }
 
   /**turns off elevator
@@ -310,14 +327,14 @@ public class Robot extends TimedRobot {
    * 
    */
   public void liftUp(){
-    rearLift.up(.5);
+    rearLift.up(tuningValues.get("lSpdUp"));
   }
   
   /**Moves lift down
    * 
    */
   public void liftDown(){
-    rearLift.down();
+    rearLift.down(tuningValues.get("lSpdDow"));
   }
   public void liftHoldPos(){
     rearLift.moveToPos(rearLift.getEncoder().getPosition());
@@ -326,11 +343,11 @@ public class Robot extends TimedRobot {
    * 
    */
   public void liftRaise(){
-    rearLift.moveToPos(tuningValues.get("lTop"),.3);
+    rearLift.moveToPos(tuningValues.get("lTop"),tuningValues.get("lSpdUp"));
   }
 
   public void liftLower(){
-    rearLift.moveToPos(tuningValues.get("lBot"),.3);
+    rearLift.moveToPos(tuningValues.get("lBot"),tuningValues.get("lSpdUp"));
   }
   /**Turns lift off
    * 
@@ -346,11 +363,11 @@ public class Robot extends TimedRobot {
    * 
    */
   public void armUp(){
-    arm.up(.5);
+    arm.up(tuningValues.get("aSpd"));
   }
 
   public void armDown(){
-    arm.down(.5);
+    arm.down(tuningValues.get("aSpd"));
   }
 
   public void armHoldPos(){
@@ -358,19 +375,19 @@ public class Robot extends TimedRobot {
   }
 
   public void armSit(){
-    arm.moveToPos(tuningValues.get("aSit"),.1);
+    arm.moveToPos(tuningValues.get("aSit"),tuningValues.get("aSpd"));
   }
 
   public void armDeck(){
-    arm.moveToPos(tuningValues.get("aDec"),.1);
+    arm.moveToPos(tuningValues.get("aDec"),tuningValues.get("aSpd"));
   }
 
   public void armHatch(){
-    arm.moveToPos(tuningValues.get("aHat"),.1);
+    arm.moveToPos(tuningValues.get("aHat"),tuningValues.get("aSpd"));
   }
 
   public void armBall(){
-    arm.moveToPos(tuningValues.get("aBal"),.1);
+    arm.moveToPos(tuningValues.get("aBal"),tuningValues.get("aSpd"));
   }
 
   public void armOff(){

@@ -140,7 +140,7 @@ public class Lift extends CANSparkMax{
         p.setReference(pos,ControlType.kPosition);
     }
     public void printSensorPosition(){
-        System.out.println("Sensor Position: "+getEncoder());
+        System.out.println("Sensor Position: "+getEncoder().getPosition());
         if (state==State.activePID) System.out.println("Target Position: "+targetPosition);
     }
     public double getActivationTime(){

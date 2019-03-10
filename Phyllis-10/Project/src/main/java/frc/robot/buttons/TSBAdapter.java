@@ -9,9 +9,9 @@ import frc.robot.motors.Elevator;
  */
 public class TSBAdapter extends ButtonHandler{
     private Robot robot;
-    private enum Mode{RobotResponse,Tune};
+    public enum Mode{RobotResponse,Tune};
     private Mode mode;
-    private String[] tuningValues={"eTop","eBot","eMid","eDec","aHat","aBal","aSit","aDec","lTop","lBot"};
+    private String[] tuningValues={"eTop","eBot","eMid","eDec","aHat","aBal","aSit","aDec","lTop","lBot","eSpdUp","eSpdDow","lSpdUp","lSpdDow","aSpd","eCurUp","eCurDow","eCurPID","lCur","aCur"};
     private int currentPropertyNo;
     private String currentTuningValue;
     private String inputCache;
@@ -24,7 +24,7 @@ public class TSBAdapter extends ButtonHandler{
         inputCache="";
     }
     public void buttonPressed(int no){
-        if (mode==Mode.RobotResponse){
+        if (mode==Mode.RobotResponse&&robot.isEnabled()){
             switch (no){
                 //button 1 moves elevator up
                 case 1:
@@ -35,7 +35,7 @@ public class TSBAdapter extends ButtonHandler{
                     robot.elevatorDown();
                 break;
                 //button 2 moves elevator to bottom
-                /*case 2:
+                case 2:
                     robot.elevatorBottom();
                 break;
                 //button 3 moves elevator to middle
@@ -45,7 +45,7 @@ public class TSBAdapter extends ButtonHandler{
                 //button 7 moves elevator to top
                 case 7:
                     robot.elevatorTop();
-                break;*/
+                break;
                 //button 4 moves lift up
                 case 4:
                     robot.liftUp();
@@ -55,13 +55,13 @@ public class TSBAdapter extends ButtonHandler{
                     robot.liftDown();
                 break;
                 //button 5 puts lift in raised position
-                /*case 5:
-                    robot.liftUp();
+                case 5:
+                    robot.liftRaise();
                 break;
                 //button 10 puts lift in lowered position
                 case 10:
                     robot.liftLower();
-                break;*/
+                break;
                 //button 11 moves arm up
                 case 11:
                     robot.armUp();
@@ -71,7 +71,7 @@ public class TSBAdapter extends ButtonHandler{
                     robot.armDown();
                 break;
                 //button 13 puts arm in ball position
-                /*case 13:
+                case 13:
                     robot.armBall();
                 break;
                 //button 15 puts arm in hatch position
@@ -85,7 +85,7 @@ public class TSBAdapter extends ButtonHandler{
                 //button 16 puts arm at sit height
                 case 16:
                     robot.armSit();
-                break;*/
+                break;
                 //button 17 initiates intake
                 case 17:
                     robot.intake();
@@ -142,6 +142,7 @@ public class TSBAdapter extends ButtonHandler{
                     case 17:
                         if (!inputCache.contains("-")){
                             inputCache="-"+inputCache;
+                            System.out.println("Input Cache: "+inputCache);
                         } else {
                             inputCache=inputCache.substring(1);
                         }
@@ -165,7 +166,7 @@ public class TSBAdapter extends ButtonHandler{
                     //button 26 changes what property you are editing (++)
                     case 27:
                         currentPropertyNo++;
-                        if (currentPropertyNo>9){
+                        if (currentPropertyNo>19){
                             currentPropertyNo=0;
                         }
                         currentTuningValue=tuningValues[currentPropertyNo];
@@ -175,14 +176,18 @@ public class TSBAdapter extends ButtonHandler{
                     case 26:
                         currentPropertyNo--;
                         if (currentPropertyNo<0){
-                            currentPropertyNo=9;
+                            currentPropertyNo=19;
                         }
                         currentTuningValue=tuningValues[currentPropertyNo];
                         System.out.println("Now edititing "+currentTuningValue);
                     break;
                     case 28:
-                        mode=Mode.RobotResponse;
-                        System.out.println("Mode set to 'RobotResponse'");
+                        if (robot.isEnabled()){
+                            mode=Mode.RobotResponse;
+                            System.out.println("Mode set to 'RobotResponse'");
+                        } else {
+                            System.out.println("RobotResponse mode not available while robot is disabled");
+                        }
                     break;
                 }
             }
@@ -195,11 +200,11 @@ public class TSBAdapter extends ButtonHandler{
             break;*/
             //button 1 moves elevator up
             case 1:
-                robot.elevatorOff();
+                robot.elevatorHoldPos();
             break;
             //button 6 moves elevator down
             case 6:
-                robot.elevatorOff();
+                robot.elevatorHoldPos();
             break;
             case 4:
                 robot.liftOff();
@@ -221,5 +226,8 @@ public class TSBAdapter extends ButtonHandler{
             break;
             
         }
+    }
+    public void setMode(Mode mode){
+        this.mode=mode;
     }
 }

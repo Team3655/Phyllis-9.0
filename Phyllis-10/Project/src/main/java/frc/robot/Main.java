@@ -15,8 +15,6 @@ import javax.swing.JPanel;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
-import frc.robot.GUI.GPanel;
-import frc.robot.GUI.GUIT;
 
 /**
  * Do NOT add any static variables to this class, or any initialization at all.
@@ -24,19 +22,12 @@ import frc.robot.GUI.GUIT;
  * change the parameter class to the startRobot call.
  */
 public final class Main {
-  JPanel panel=new GPanel();
   /**
    * Main initialization function. Do not perform any initialization here.
    *
    * <p>If you change your main robot class, change the parameter type.
    */
   public static void main(String... args) {
-    try {
-      RobotBase.startRobot(RobotSpark::new);
-    } catch(Exception e){
-      System.err.println("No robot connected");
-    }    
-    GUIT gui=new GUIT();
-    gui.start();
+    RobotBase.startRobot(Robot::new);
   }
 }
