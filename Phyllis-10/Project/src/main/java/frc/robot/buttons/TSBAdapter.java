@@ -209,11 +209,13 @@ public class TSBAdapter extends ButtonHandler{
             break;*/
             //button 1 moves elevator up
             case 1:
-                robot.elevatorOff();//elevatorHoldPos();
+                robot.elevatorHoldPos();
+                elevatorControlMode=ElevatorControlMode.Joystick;
             break;
             //button 6 moves elevator down
             case 6:
-                robot.elevatorOff();//elevatorHoldPos();
+                robot.elevatorHoldPos();
+                elevatorControlMode=ElevatorControlMode.Joystick;
             break;
             case 4:
                 robot.liftHoldPos();

@@ -288,6 +288,8 @@ public class Robot extends TimedRobot {
     elevator.off();
     elevator.moveToPos(elevator.getEncoder().getPosition());
   }
+
+  
   public void elevatorJoystick(){
     elevator.set(tractorPanel.getY()*-tuningValues.get("eSpdJ"));
     if (Math.abs(tractorPanel.getY())<.05){
