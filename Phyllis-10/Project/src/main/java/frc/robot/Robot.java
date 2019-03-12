@@ -11,6 +11,7 @@ import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.buttons.*;
 import frc.robot.motors.Arm;
@@ -49,6 +50,7 @@ public class Robot extends TimedRobot {
   private Iotake iotake=new Iotake();//Iotake is intake/outtake system
   private Arm arm=new Arm();
   private Lift rearLift=new Lift();
+  private Gyro gyro=new AnalogGyro(0);
   private Boolean climbing;
   private Hashtable<String,Double> tuningValues;
   private double Y;
@@ -60,7 +62,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() { 
-    
     UsbCamera front=CameraServer.getInstance().startAutomaticCapture(0); 
     if (front.isConnected()==false){
       front.close();
@@ -68,6 +69,7 @@ public class Robot extends TimedRobot {
     //UsbCamera back=CameraServer.getInstance().startAutomaticCapture(1);
     leftBackCAN.follow(leftFrontCAN);
     rightBackCAN.follow(rightFrontCAN);
+    rightFrontCAN.setInverted(true);
     elevatorF.follow(elevator);
     //rightFrontCAN.setOpenLoopRampRate(10);
     //leftFrontCAN.setOpenLoopRampRate(10);
@@ -91,19 +93,19 @@ public class Robot extends TimedRobot {
     tuningValues.put("aBal",.1);
     tuningValues.put("aSit",.1);
     tuningValues.put("aDec",.1);
-    tuningValues.put("lTop",.1);
+    tuningValues.put("lTop",0.0);
     tuningValues.put("lBot",-.5);
 
     tuningValues.put("eSpdUp",.8);
     tuningValues.put("eSpdDow",.6);
     tuningValues.put("lSpdUp",.6);
-    tuningValues.put("lSpdDow",.4);
+    tuningValues.put("lSpdDow",.6);
     tuningValues.put("aSpd",.7);
 
     tuningValues.put("eCurUp",52.0);
     tuningValues.put("eCurDow", 8.0);
     tuningValues.put("eCurPID", 60.0);
-    tuningValues.put("lCur", 32.0);
+    tuningValues.put("lCur", 80.0);
     tuningValues.put("aCur", 17.0);
     climbing=false;
     solenoid=new Solenoid(0);
@@ -233,6 +235,13 @@ public class Robot extends TimedRobot {
   }
   public void setTuningValue(String key,double value){
     tuningValues.replace(key,value);
+  }
+
+  
+  //GYRO
+
+  public void calibrateGyro(){
+    gyro.calibrate();
   }
 
 

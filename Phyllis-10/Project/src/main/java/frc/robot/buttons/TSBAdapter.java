@@ -207,10 +207,10 @@ public class TSBAdapter extends ButtonHandler{
                 robot.elevatorHoldPos();
             break;
             case 4:
-                robot.liftOff();
+                robot.liftHoldPos();
             break;
             case 9:
-                robot.liftOff();
+                robot.liftHoldPos();
             break;
             case 11:
                 robot.armOff();
