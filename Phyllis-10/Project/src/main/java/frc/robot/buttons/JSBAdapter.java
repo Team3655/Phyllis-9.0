@@ -56,4 +56,5 @@ public class JSBAdapter extends ButtonHandler{
             break;
         }
     }
+    public void buttonDown(int no){}
 }

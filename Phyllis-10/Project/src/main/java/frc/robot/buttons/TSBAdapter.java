@@ -10,8 +10,10 @@ import frc.robot.motors.Elevator;
 public class TSBAdapter extends ButtonHandler{
     private Robot robot;
     public enum Mode{RobotResponse,Tune};
+    private enum ElevatorControlMode{Joystick,PID};
+    private ElevatorControlMode elevatorControlMode;
     private Mode mode;
-    private String[] tuningValues={"eTop","eBot","eMid","eDec","aHat","aBal","aSit","aDec","lTop","lBot","eSpdUp","eSpdDow","lSpdUp","lSpdDow","aSpd","eCurUp","eCurDow","eCurPID","lCur","aCur"};
+    private String[] tuningValues={"eTop","eBot","eMid","eDec","aHat","aBal","aSit","aDec","lTop","lBot","eSpdUp","eSpdDow","lSpdUp","lSpdDow","eSpdJ","aSpd","eCurUp","eCurDow","eCurPID","lCur","aCur"};
     private int currentPropertyNo;
     private String currentTuningValue;
     private String inputCache;
@@ -22,29 +24,36 @@ public class TSBAdapter extends ButtonHandler{
         currentPropertyNo=0;
         currentTuningValue=tuningValues[currentPropertyNo];
         inputCache="";
+        elevatorControlMode=ElevatorControlMode.Joystick;
     }
     public void buttonPressed(int no){
         if (mode==Mode.RobotResponse&&robot.isEnabled()){
             switch (no){
+                
                 //button 1 moves elevator up
                 case 1:
                     robot.elevatorUp();
+                    elevatorControlMode=ElevatorControlMode.PID;
                 break;
                 //button 6 moves elevator down
                 case 6:
                     robot.elevatorDown();
+                    elevatorControlMode=ElevatorControlMode.PID;
                 break;
                 //button 2 moves elevator to bottom
                 case 2:
                     robot.elevatorBottom();
+                    elevatorControlMode=ElevatorControlMode.PID;
                 break;
                 //button 3 moves elevator to middle
                 case 3:
                     robot.elevatorMid();
+                    elevatorControlMode=ElevatorControlMode.PID;
                 break;
                 //button 7 moves elevator to top
                 case 7:
                     robot.elevatorTop();
+                    elevatorControlMode=ElevatorControlMode.PID;
                 break;
                 //button 4 moves lift up
                 case 4:
@@ -166,7 +175,7 @@ public class TSBAdapter extends ButtonHandler{
                     //button 26 changes what property you are editing (++)
                     case 27:
                         currentPropertyNo++;
-                        if (currentPropertyNo>19){
+                        if (currentPropertyNo>20){
                             currentPropertyNo=0;
                         }
                         currentTuningValue=tuningValues[currentPropertyNo];
@@ -176,7 +185,7 @@ public class TSBAdapter extends ButtonHandler{
                     case 26:
                         currentPropertyNo--;
                         if (currentPropertyNo<0){
-                            currentPropertyNo=19;
+                            currentPropertyNo=20;
                         }
                         currentTuningValue=tuningValues[currentPropertyNo];
                         System.out.println("Now edititing "+currentTuningValue);
@@ -200,11 +209,11 @@ public class TSBAdapter extends ButtonHandler{
             break;*/
             //button 1 moves elevator up
             case 1:
-                robot.elevatorHoldPos();
+                robot.elevatorOff();//elevatorHoldPos();
             break;
             //button 6 moves elevator down
             case 6:
-                robot.elevatorHoldPos();
+                robot.elevatorOff();//elevatorHoldPos();
             break;
             case 4:
                 robot.liftHoldPos();
@@ -225,6 +234,14 @@ public class TSBAdapter extends ButtonHandler{
                 robot.iotakeOff();
             break;
             
+        }
+    }
+    public void buttonDown(int no){
+        if (Math.abs(getY())>.05){
+            elevatorControlMode=ElevatorControlMode.Joystick;
+        }
+        if (!(no==1||no==6)&&elevatorControlMode==ElevatorControlMode.Joystick){
+            robot.elevatorJoystick();
         }
     }
     public void setMode(Mode mode){

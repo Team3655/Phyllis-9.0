@@ -50,7 +50,7 @@ public class Robot extends TimedRobot {
   private Iotake iotake=new Iotake();//Iotake is intake/outtake system
   private Arm arm=new Arm();
   private Lift rearLift=new Lift();
-  private Gyro gyro=new AnalogGyro(0);
+  private AnalogGyro gyro=new AnalogGyro(0);
   private Boolean climbing;
   private Hashtable<String,Double> tuningValues;
   private double Y;
@@ -96,10 +96,11 @@ public class Robot extends TimedRobot {
     tuningValues.put("lTop",0.0);
     tuningValues.put("lBot",-.5);
 
-    tuningValues.put("eSpdUp",.8);
-    tuningValues.put("eSpdDow",.6);
-    tuningValues.put("lSpdUp",.6);
+    tuningValues.put("eSpdUp",.3);
+    tuningValues.put("eSpdDow",.2);
+    tuningValues.put("lSpdUp",.8);
     tuningValues.put("lSpdDow",.6);
+    tuningValues.put("eSpdJ",.6);
     tuningValues.put("aSpd",.7);
 
     tuningValues.put("eCurUp",52.0);
@@ -135,7 +136,7 @@ public class Robot extends TimedRobot {
   }
   private void periodic(){
     //driving arcade
-    robot.arcadeDrive(rightStick.getY(), xStick.getX()*.75);
+    robot.arcadeDrive(rightStick.getY(), xStick.getX()*.75); 
     //update button inputs
     if (!(jsbAdapter.equals(null)&&tsbAdapter.equals(null))){
       jsbAdapter.update();
@@ -237,13 +238,6 @@ public class Robot extends TimedRobot {
     tuningValues.replace(key,value);
   }
 
-  
-  //GYRO
-
-  public void calibrateGyro(){
-    gyro.calibrate();
-  }
-
 
   //PNUEMATICS
 
@@ -293,6 +287,12 @@ public class Robot extends TimedRobot {
   public void elevatorHoldPos(){
     elevator.off();
     elevator.moveToPos(elevator.getEncoder().getPosition());
+  }
+  public void elevatorJoystick(){
+    elevator.set(tractorPanel.getY()*-tuningValues.get("eSpdJ"));
+    if (Math.abs(tractorPanel.getY())<.05){
+      elevatorHoldPos();
+    }
   }
 
   //Not fuctional!

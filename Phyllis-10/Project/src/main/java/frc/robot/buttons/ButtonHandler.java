@@ -23,8 +23,11 @@ abstract class ButtonHandler {
     */
     public void update(){
         for (int i=1; i<=buttonNo; i++){
-            if (buttonInterface.getRawButtonPressed(i)){
-                buttonPressed(i);
+            if (buttonInterface.getRawButton(i)){
+                if (buttonInterface.getRawButtonPressed(i)){
+                    buttonPressed(i);
+                }
+                buttonDown(i);
             } else if (buttonInterface.getRawButtonReleased(i)){
                 buttonReleased(i);
             }
@@ -44,5 +47,16 @@ abstract class ButtonHandler {
      * @param no
      */
     abstract void buttonReleased(int no);
+    /**
+     * Is called in update function when a button is down
+     * @param no the button that was pressed
+     */
+    abstract void buttonDown(int no);
+    public double getY(){
+        return buttonInterface.getY();
+    }
+    public double getX(){
+        return buttonInterface.getX();
+    }
 
 }
