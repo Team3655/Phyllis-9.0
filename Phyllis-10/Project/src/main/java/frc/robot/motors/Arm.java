@@ -7,6 +7,9 @@ import com.revrobotics.CANPIDController;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.ControlType;
 
+import frc.robot.Robot;
+import frc.robot.event.customevents.PrintEvent;
+
 public class Arm extends CANSparkMax{
     public static enum State {activeUp,activeDown,activePID,off};
     private State state;
@@ -155,8 +158,8 @@ public class Arm extends CANSparkMax{
         p.setReference(pos,ControlType.kPosition);
     }
     public void printSensorPosition(){
-        System.out.println("Sensor Position: "+getEncoder().getPosition());
-        if (state==State.activePID) System.out.println("Target Position: "+targetPosition);
+        Robot.eHandler.triggerEvent(new PrintEvent("Sensor Position: "+getEncoder().getPosition()));
+        if (state==State.activePID) Robot.eHandler.triggerEvent(new PrintEvent("Target Position: "+targetPosition));
     }
     public double getActivationTime(){
         return activationTime;

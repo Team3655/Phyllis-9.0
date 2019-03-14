@@ -14,6 +14,8 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.buttons.*;
+import frc.robot.event.EventHandler;
+import frc.robot.event.customevents.PrintEvent;
 import frc.robot.motors.Arm;
 import frc.robot.motors.Elevator;
 import frc.robot.motors.ExtendableMotor;
@@ -30,6 +32,7 @@ public class Robot extends TimedRobot {
   //CLASS VARIABLES
 
   public static enum driveType {twoJoyStick,oneJoystick};
+  public static EventHandler eHandler=new EventHandler();
   private final double voltageCutoff=8.5;
   private DifferentialDrive robot;
   private Joystick leftStick;
@@ -62,6 +65,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() { 
+    eHandler.start();
     UsbCamera front=CameraServer.getInstance().startAutomaticCapture(0); 
     if (front.isConnected()==false){
       front.close();
@@ -106,6 +110,7 @@ public class Robot extends TimedRobot {
     tuningValues.put("eCurUp",52.0);
     tuningValues.put("eCurDow", 8.0);
     tuningValues.put("eCurPID", 60.0);
+    tuningValues.put("eCurJoy", 60.0);
     tuningValues.put("lCur", 80.0);
     tuningValues.put("aCur", 17.0);
     climbing=false;
@@ -143,7 +148,7 @@ public class Robot extends TimedRobot {
       tsbAdapter.update();
     }
     if (rearLift.getMotorTemperature()>100){
-      System.err.println("WARNING: Rear lift high temperature of "+rearLift.getMotorTemperature());
+      eHandler.triggerEvent(new PrintEvent("WARNING: Rear lift high temperature of "+rearLift.getMotorTemperature()));
     } else if (rearLift.getMotorTemperature()>200){
       rearLift.off();
       System.out.println("Rearlift disabled from high temperature of "+rearLift.getMotorTemperature());
@@ -155,24 +160,24 @@ public class Robot extends TimedRobot {
     }
     //stop elevator at current spike
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation 
-    if (((elevator.getState()==Elevator.State.activeUp&&Math.abs(elevator.getOutputCurrent())>tuningValues.get("eCurUp"))||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>tuningValues.get("eCurDow")&&!climbing)||(elevator.getState()==Elevator.State.activePID&&elevator.getOutputCurrent()>tuningValues.get("eCurPID"))||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>50/*and climbing not necessary to specify*/)) && System.currentTimeMillis()>elevator.getActivationTime()+250){
+    if (((elevator.getState()==Elevator.State.activeUp&&Math.abs(elevator.getOutputCurrent())>tuningValues.get("eCurUp"))||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>tuningValues.get("eCurDow")&&!climbing)||(elevator.getState()==Elevator.State.activePID&&elevator.getOutputCurrent()>tuningValues.get("eCurPID"))||(elevator.getState()==Elevator.State.active&&elevator.getOutputCurrent()>tuningValues.get("eCurJoy")&&!climbing)||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>50/*and climbing not necessary to specify*/)) && System.currentTimeMillis()>elevator.getActivationTime()+250){
       elevatorOff();
-      System.out.println("Elevator disabled from high output current of "+elevator.getOutputCurrent());
+      eHandler.triggerEvent(new PrintEvent("Elevator disabled from high output current of "+elevator.getOutputCurrent(),true));
     }
     if (!(rearLift.getState()==Lift.State.off)&&Math.abs(rearLift.getOutputCurrent())>tuningValues.get("lCur") && System.currentTimeMillis()>rearLift.getActivationTime()+500){
       liftOff();
-      System.out.println("Rearlift disabled from high output current of "+rearLift.getOutputCurrent());
+      eHandler.triggerEvent(new PrintEvent("Rearlift disabled from high output current of "+rearLift.getOutputCurrent(),true));
     }
     if (!(arm.getState()==Arm.State.off)&&Math.abs(arm.getOutputCurrent())>17 && System.currentTimeMillis()>arm.getActivationTime()+500){
       armOff();
-      System.out.println("Arm disabled from high output current of "+arm.getOutputCurrent());
+      eHandler.triggerEvent(new PrintEvent("Arm disabled from high output current of "+arm.getOutputCurrent(),true));
     }
     //stop intake at voltage spike
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation
     //no abs value needed for this one because outtake doesn't need to be ended at a voltage spike
     if (iotake.getState()==Iotake.State.activeIn&&iotake.getOutputCurrent()>25 && System.currentTimeMillis()>iotake.getActivationTime()+500){
       iotakeOff();
-      System.out.println("Outtake disabled from high output current");
+      Robot.eHandler.triggerEvent(new PrintEvent("Outtake disabled from high output current",true));
     }
     //debug();
   }
@@ -195,7 +200,7 @@ public class Robot extends TimedRobot {
    */
   public void toggleClimbing(){
     climbing=!climbing;
-    System.out.println("CLIMBING MODE SET TO "+String.valueOf(climbing)+" - CHANGE IN ELEVATOR DOWN CURRENT LIMIT");
+    eHandler.triggerEvent(new PrintEvent("CLIMBING MODE SET TO "+String.valueOf(climbing)+" - CHANGE IN ELEVATOR DOWN CURRENT LIMIT"));
   }
 
   //DRIVE TYPE
@@ -292,9 +297,6 @@ public class Robot extends TimedRobot {
   
   public void elevatorJoystick(){
     elevator.set(tractorPanel.getY()*-tuningValues.get("eSpdJ"));
-    if (Math.abs(tractorPanel.getY())<.05){
-      elevatorHoldPos();
-    }
   }
 
   //Not fuctional!
@@ -436,11 +438,11 @@ public class Robot extends TimedRobot {
    * 
    */
   public void printSensorPositions(){
-    System.out.println("<--ELEVATOR-->");
+    eHandler.triggerEvent(new PrintEvent("<--ELEVATOR-->"));
     elevator.printSensorPosition();
-    System.out.println("<--REAR LIFT-->");
+    eHandler.triggerEvent(new PrintEvent("<--REAR LIFT-->"));
     rearLift.printSensorPosition();
-    System.out.println("<--ARM-->");
+    eHandler.triggerEvent(new PrintEvent("<--ARM-->"));
     arm.printSensorPosition();
   }
 

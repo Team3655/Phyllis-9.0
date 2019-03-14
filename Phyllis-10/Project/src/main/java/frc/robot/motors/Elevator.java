@@ -9,9 +9,11 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.ControlType;
 
 import edu.wpi.first.wpilibj.PIDController;
+import frc.robot.Robot;
+import frc.robot.event.customevents.PrintEvent;
 
 public class Elevator extends CANSparkMax {
-    public static enum State {activeUp,activeDown,activePID,off};
+    public static enum State {active,activeUp,activeDown,activePID,off};
     private State state;
     private double defaultDemand;
     private double activationTime=0;
@@ -98,6 +100,12 @@ public class Elevator extends CANSparkMax {
             activationTime = System.currentTimeMillis();
         }
     }
+    @Override
+    public void set(double speed) {
+        super.set(speed);
+        state=State.active;
+        activationTime = System.currentTimeMillis();
+    }
     /**Moves elevator up
      * Uses percent output for control mode of set function
      * The absolute value of <code>demand</code> is used (elevator will only move up)
@@ -158,8 +166,8 @@ public class Elevator extends CANSparkMax {
         p.setReference(pos,ControlType.kPosition);
     }
     public void printSensorPosition(){
-        System.out.println("Sensor Position: "+getEncoder().getPosition());
-        if (state==State.activePID) System.out.println("Target Position: "+targetPosition);
+        Robot.eHandler.triggerEvent(new PrintEvent("Sensor Position: "+getEncoder().getPosition()));
+        if (state==State.activePID) Robot.eHandler.triggerEvent(new PrintEvent("Target Position: "+targetPosition));
     }
     public double getActivationTime(){
         return activationTime;

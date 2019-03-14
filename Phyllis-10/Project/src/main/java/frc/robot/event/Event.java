@@ -1,6 +1,6 @@
 package frc.robot.event;
 
-abstract class Event{
+public abstract class Event{
     private long triggerTime;
     private long delay;
     private boolean taskDone;
@@ -31,11 +31,11 @@ abstract class Event{
      * 
      * @return wheather the task has been done yet
      */
-    public boolean taskDone(){
+    public final boolean taskDone(){
         return taskDone;
     }
     /**Task to be carried out when triggered after delay
      * 
      */
-    abstract void task();
+    public abstract void task();
 }
