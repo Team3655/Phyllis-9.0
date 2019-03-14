@@ -1,5 +1,6 @@
 package frc.robot.buttons;
 
+
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import frc.robot.Robot;
@@ -11,10 +12,11 @@ import frc.robot.motors.Elevator;
 public class TSBAdapter extends ButtonHandler{
     private Robot robot;
     public enum Mode{RobotResponse,Tune};
-    private enum ElevatorControlMode{Joystick,PID};
-    private ElevatorControlMode elevatorControlMode;
+    private enum ControlMode{Joystick,PID};
+    private ControlMode elevatorControlMode;
+    private ControlMode armControlMode;
     private Mode mode;
-    private String[] tuningValues={"eTop","eBot","eMid","eDec","aHat","aBal","aSit","aDec","lTop","lBot","eSpdUp","eSpdDow","lSpdUp","lSpdDow","eSpdJ","aSpd","eCurUp","eCurDow","eCurPID","eCurJoy","lCur","aCur"};
+    private String[] tuningValues={"eTop","eBot","eMid","eCar","aCar","aHat","aBal","aSit","aDec","lTop","lBot","eSpdUp","eSpdDow","lSpdUp","lSpdDow","eSpdJ","aSpd","aSpdJ","eCurUp","eCurDow","eCurPID","eCurJoy","lCur","aCur"};
     private int currentPropertyNo;
     private String currentTuningValue;
     private String inputCache;
@@ -25,7 +27,8 @@ public class TSBAdapter extends ButtonHandler{
         currentPropertyNo=0;
         currentTuningValue=tuningValues[currentPropertyNo];
         inputCache="";
-        elevatorControlMode=ElevatorControlMode.Joystick;
+        elevatorControlMode=ControlMode.Joystick;
+        armControlMode=ControlMode.Joystick;
     }
     public void buttonPressed(int no){
         if (mode==Mode.RobotResponse&&robot.isEnabled()){
@@ -34,27 +37,32 @@ public class TSBAdapter extends ButtonHandler{
                 //button 1 moves elevator up
                 case 1:
                     robot.elevatorUp();
-                    elevatorControlMode=ElevatorControlMode.PID;
+                    elevatorControlMode=ControlMode.PID;
                 break;
                 //button 6 moves elevator down
                 case 6:
                     robot.elevatorDown();
-                    elevatorControlMode=ElevatorControlMode.PID;
+                    elevatorControlMode=ControlMode.PID;
                 break;
                 //button 2 moves elevator to bottom
                 case 2:
                     robot.elevatorBottom();
-                    elevatorControlMode=ElevatorControlMode.PID;
+                    elevatorControlMode=ControlMode.PID;
                 break;
                 //button 3 moves elevator to middle
                 case 3:
                     robot.elevatorMid();
-                    elevatorControlMode=ElevatorControlMode.PID;
+                    elevatorControlMode=ControlMode.PID;
                 break;
                 //button 7 moves elevator to top
                 case 7:
                     robot.elevatorTop();
-                    elevatorControlMode=ElevatorControlMode.PID;
+                    elevatorControlMode=ControlMode.PID;
+                break;
+                //button 8 moves elevator into cargo position
+                case 8:
+                    robot.elevatorCargo();
+                    elevatorControlMode=ControlMode.PID;
                 break;
                 //button 4 moves lift up
                 case 4:
@@ -83,18 +91,22 @@ public class TSBAdapter extends ButtonHandler{
                 //button 13 puts arm in ball position
                 case 13:
                     robot.armBall();
+                    armControlMode=ControlMode.PID;
                 break;
                 //button 15 puts arm in hatch position
                 case 15:
                     robot.armHatch();
+                    armControlMode=ControlMode.PID;
                 break;
                 //button 14 puts arm at deck height
                 case 14:
-                    robot.armDeck();
+                    robot.armCargo();
+                    armControlMode=ControlMode.PID;
                 break;
                 //button 16 puts arm at sit height
                 case 16:
                     robot.armSit();
+                    armControlMode=ControlMode.PID;
                 break;
                 //button 17 initiates intake
                 case 17:
@@ -125,9 +137,7 @@ public class TSBAdapter extends ButtonHandler{
                     robot.printSensorPositions();
                 break;
                 case 24:
-                    System.out.println("Tractor Sim:");
-                    System.out.println("    Y:"+getY());
-                    System.out.println("    X:"+getX());
+                    robot.debug();
                 break;
                 case 28:
                     mode=Mode.Tune;
@@ -145,7 +155,10 @@ public class TSBAdapter extends ButtonHandler{
                         System.out.println("Input Cache: "+inputCache);
                     break;
                     case 11:
-                        inputCache=inputCache.substring(0, inputCache.length()-1);
+                        try {
+                            inputCache=inputCache.substring(0, inputCache.length()-1);
+                        } catch (Exception e){
+                        }
                         System.out.println("Input Cache: "+inputCache);
                     break;
                     case 12:
@@ -181,7 +194,7 @@ public class TSBAdapter extends ButtonHandler{
                     //button 26 changes what property you are editing (++)
                     case 27:
                         currentPropertyNo++;
-                        if (currentPropertyNo>21){
+                        if (currentPropertyNo>23){
                             currentPropertyNo=0;
                         }
                         currentTuningValue=tuningValues[currentPropertyNo];
@@ -191,7 +204,7 @@ public class TSBAdapter extends ButtonHandler{
                     case 26:
                         currentPropertyNo--;
                         if (currentPropertyNo<0){
-                            currentPropertyNo=21;
+                            currentPropertyNo=23;
                         }
                         currentTuningValue=tuningValues[currentPropertyNo];
                         System.out.println("Now edititing "+currentTuningValue);
@@ -216,12 +229,12 @@ public class TSBAdapter extends ButtonHandler{
             //button 1 moves elevator up
             case 1:
                 robot.elevatorHoldPos();
-                elevatorControlMode=ElevatorControlMode.Joystick;
+                elevatorControlMode=ControlMode.Joystick;
             break;
             //button 6 moves elevator down
             case 6:
                 robot.elevatorHoldPos();
-                elevatorControlMode=ElevatorControlMode.Joystick;
+                elevatorControlMode=ControlMode.Joystick;
             break;
             case 4:
                 robot.liftHoldPos();
@@ -230,10 +243,12 @@ public class TSBAdapter extends ButtonHandler{
                 robot.liftHoldPos();
             break;
             case 11:
-                robot.armHoldPos();;
+                robot.armHoldPos();
+                armControlMode=ControlMode.PID;
             break;
             case 12:
-                robot.armHoldPos();;
+                robot.armHoldPos();
+                armControlMode=ControlMode.PID;
             break;
             case 17:
                 robot.iotakeOff();
@@ -250,13 +265,21 @@ public class TSBAdapter extends ButtonHandler{
     @Override
     public void update() {
         super.update();
-        if (Math.abs(getY())<.05&&!(elevatorControlMode==ElevatorControlMode.PID)){
+        if (Math.abs(getY())<.05&&!(elevatorControlMode==ControlMode.PID)){
             robot.elevatorHoldPos();
-            elevatorControlMode=ElevatorControlMode.PID;
-        } else if (!(getButtonDown(1)||getButtonDown(6))&&elevatorControlMode==ElevatorControlMode.Joystick){
+            elevatorControlMode=ControlMode.PID;
+        } else if (!(getButtonDown(1)||getButtonDown(6))&&elevatorControlMode==ControlMode.Joystick){
             robot.elevatorJoystick();
-        } else if (Math.abs(getY())>.05&&!(elevatorControlMode==ElevatorControlMode.Joystick)){
-            elevatorControlMode=ElevatorControlMode.Joystick;
+        } else if (Math.abs(getY())>.05&&!(elevatorControlMode==ControlMode.Joystick)){
+            elevatorControlMode=ControlMode.Joystick;
+        }
+        if (Math.abs(getX())<.05&&!(armControlMode==ControlMode.PID)){
+            robot.armHoldPos();
+            armControlMode=ControlMode.PID;
+        } else if (!(getButtonDown(11)||getButtonDown(12))&&armControlMode==ControlMode.Joystick){
+            robot.armJoystick();
+        } else if (Math.abs(getX())>.05&&!(armControlMode==ControlMode.Joystick)){
+            armControlMode=ControlMode.Joystick;
         }
     }
     public void setMode(Mode mode){

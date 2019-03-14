@@ -165,6 +165,13 @@ public class Elevator extends CANSparkMax {
         state=State.activePID;
         p.setReference(pos,ControlType.kPosition);
     }
+    public void moveToPos(double pos,double demandDown,double demandUp){
+        set(0);
+        targetPosition=pos;
+        p.setOutputRange(-1*Math.abs(demandDown), Math.abs(demandUp));
+        state=State.activePID;
+        p.setReference(pos,ControlType.kPosition);
+    }
     public void printSensorPosition(){
         System.out.println("Sensor Position: "+getEncoder().getPosition());
         if (state==State.activePID) System.out.println("Target Position: "+targetPosition);

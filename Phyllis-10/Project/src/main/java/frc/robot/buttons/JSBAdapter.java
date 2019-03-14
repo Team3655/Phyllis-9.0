@@ -26,7 +26,7 @@ public class JSBAdapter extends ButtonHandler{
             break;
             //button 3 to emergency stop intake (shouldn't be necessary but just in case, in a place where it won't accidentaly be bumped)
             case 3:
-                robot.iotakeOff();
+                robot.armHatch();
             break;
             //button 4 toggles weather or not the robot is in climbing mode
             case 4:

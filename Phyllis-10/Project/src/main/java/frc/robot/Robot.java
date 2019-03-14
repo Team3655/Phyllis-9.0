@@ -65,7 +65,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() { 
-    eHandler.start();
     UsbCamera front=CameraServer.getInstance().startAutomaticCapture(0); 
     if (front.isConnected()==false){
       front.close();
@@ -89,12 +88,13 @@ public class Robot extends TimedRobot {
     jsbAdapter=new JSBAdapter(rightStick, this);
     tsbAdapter=new TSBAdapter(tractorPanel, this);
     tuningValues=new Hashtable<>();
-    tuningValues.put("eTop",.1);
-    tuningValues.put("eBot",.1);
-    tuningValues.put("eMid",.1);
-    tuningValues.put("eDec",.1);
-    tuningValues.put("aHat",.1);
-    tuningValues.put("aBal",.1);
+    tuningValues.put("eTop",59.28);
+    tuningValues.put("eBot",2.7);
+    tuningValues.put("eMid",30.8);
+    tuningValues.put("eCar",37.2);
+    tuningValues.put("aCar",-21.8);
+    tuningValues.put("aHat",-6.2);
+    tuningValues.put("aBal",-26.1);
     tuningValues.put("aSit",.1);
     tuningValues.put("aDec",.1);
     tuningValues.put("lTop",0.0);
@@ -105,14 +105,15 @@ public class Robot extends TimedRobot {
     tuningValues.put("lSpdUp",.8);
     tuningValues.put("lSpdDow",.6);
     tuningValues.put("eSpdJ",.6);
-    tuningValues.put("aSpd",.7);
+    tuningValues.put("aSpd",.4);
+    tuningValues.put("aSpdJ",.4);
 
     tuningValues.put("eCurUp",52.0);
     tuningValues.put("eCurDow", 8.0);
     tuningValues.put("eCurPID", 60.0);
     tuningValues.put("eCurJoy", 60.0);
     tuningValues.put("lCur", 80.0);
-    tuningValues.put("aCur", 17.0);
+    tuningValues.put("aCur", 120.0);
     climbing=false;
     solenoid=new Solenoid(0);
     compressor=new Compressor(0); //DOUBLE CHECK IDS
@@ -158,26 +159,29 @@ public class Robot extends TimedRobot {
         solenoid.set(false);
       }
     }
+    double elevatorCurrent=elevator.getOutputCurrent();
     //stop elevator at current spike
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation 
-    if (((elevator.getState()==Elevator.State.activeUp&&Math.abs(elevator.getOutputCurrent())>tuningValues.get("eCurUp"))||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>tuningValues.get("eCurDow")&&!climbing)||(elevator.getState()==Elevator.State.activePID&&elevator.getOutputCurrent()>tuningValues.get("eCurPID"))||(elevator.getState()==Elevator.State.active&&elevator.getOutputCurrent()>tuningValues.get("eCurJoy")&&!climbing)||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>50/*and climbing not necessary to specify*/)) && System.currentTimeMillis()>elevator.getActivationTime()+250){
+    if (((elevator.getState()==Elevator.State.activeUp&&Math.abs(elevatorCurrent)>tuningValues.get("eCurUp"))||(elevator.getState()==Elevator.State.activeDown&&elevatorCurrent>tuningValues.get("eCurDow")&&!climbing)||(elevator.getState()==Elevator.State.activePID&&elevatorCurrent>tuningValues.get("eCurPID"))||(elevator.getState()==Elevator.State.active&&elevatorCurrent>tuningValues.get("eCurJoy")&&!climbing)||(elevator.getState()==Elevator.State.activeDown&&elevatorCurrent>50/*and climbing not necessary to specify*/)) && System.currentTimeMillis()>elevator.getActivationTime()+250){
       elevatorOff();
-      System.err.println("Elevator disabled from high output current of "+elevator.getOutputCurrent());
+      System.err.println("Elevator disabled from high output current of "+elevatorCurrent);
     }
-    if (!(rearLift.getState()==Lift.State.off)&&Math.abs(rearLift.getOutputCurrent())>tuningValues.get("lCur") && System.currentTimeMillis()>rearLift.getActivationTime()+500){
+    double liftCurrent=rearLift.getOutputCurrent();
+    if (!(rearLift.getState()==Lift.State.off)&&Math.abs(liftCurrent)>tuningValues.get("lCur") && System.currentTimeMillis()>rearLift.getActivationTime()+500){
       liftOff();
-      System.err.println("Rearlift disabled from high output current of "+rearLift.getOutputCurrent());
+      System.err.println("Rearlift disabled from high output current of "+liftCurrent);
     }
-    if (!(arm.getState()==Arm.State.off)&&Math.abs(arm.getOutputCurrent())>17 && System.currentTimeMillis()>arm.getActivationTime()+500){
+    double armCurrent=arm.getOutputCurrent();
+    if (!(arm.getState()==Arm.State.off)&&Math.abs(armCurrent)>tuningValues.get("aCur") && System.currentTimeMillis()>arm.getActivationTime()+500){
       armOff();
-      System.err.println("Arm disabled from high output current of "+arm.getOutputCurrent());
+      System.err.println("Arm disabled from high output current of "+armCurrent);
     }
     //stop intake at voltage spike
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation
     //no abs value needed for this one because outtake doesn't need to be ended at a voltage spike
     if (iotake.getState()==Iotake.State.activeIn&&iotake.getOutputCurrent()>25 && System.currentTimeMillis()>iotake.getActivationTime()+500){
       iotakeOff();
-      System.err.println("Outtake disabled from high output current");
+      System.err.println("Intake disabled from high output current");
     }
     //debug();
   }
@@ -301,11 +305,11 @@ public class Robot extends TimedRobot {
 
   //Not fuctional!
   public void elevatorTop(){
-    elevator.moveToPos(tuningValues.get("eTop"),tuningValues.get("eSpdDow"));
+    elevator.moveToPos(tuningValues.get("eTop"),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"));
   }
 
   public void elevatorBottom(){
-    elevator.moveToPos(tuningValues.get("eBot"),tuningValues.get("eSpdDow"));
+    elevator.moveToPos(tuningValues.get("eBot"),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"));
   }
   
   /**Moves elevator to middle possition
@@ -314,16 +318,16 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorMid(){
-    elevator.moveToPos(tuningValues.get("eMid"),tuningValues.get("eSpdDow"));
+    elevator.moveToPos(tuningValues.get("eMid"),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"));
   }
   
-  /**Moves elevator to deck position
-   * NOT FUCTIONAL
+  /**Moves elevator to cargo position
+   * 
    * <--NEEDS TO HAVE VALUE TUNED-->
    * 
    */
-  public void elevatorDeck(){
-    elevator.moveToPos(tuningValues.get("eDec"),tuningValues.get("eSpdDow"));
+  public void elevatorCargo(){
+    elevator.moveToPos(tuningValues.get("eCar"),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"));
   }
 
   /**turns off elevator
@@ -383,6 +387,10 @@ public class Robot extends TimedRobot {
     arm.down(tuningValues.get("aSpd"));
   }
 
+  public void armJoystick() {
+    arm.set(tractorPanel.getX()*-tuningValues.get("aSpdJ"));
+  }
+
   public void armHoldPos(){
     arm.moveToPos(arm.getEncoder().getPosition());
   }
@@ -390,7 +398,9 @@ public class Robot extends TimedRobot {
   public void armSit(){
     arm.moveToPos(tuningValues.get("aSit"),tuningValues.get("aSpd"));
   }
-
+  public void armCargo(){
+    arm.moveToPos(tuningValues.get("aCar"),tuningValues.get("aSpd"));
+  }
   public void armDeck(){
     arm.moveToPos(tuningValues.get("aDec"),tuningValues.get("aSpd"));
   }
@@ -450,13 +460,19 @@ public class Robot extends TimedRobot {
    * Prints debug information to console, currently only for debugging purposes (cannot invoke with robot IO)
    * Might make more detailed and advanced debugging methods later, also will probably make write to a log file to better examen debug info (kind of hard to analize a periodically changing console)
    */
-  private void debug(){
+  public void debug(){
     //printSensorPositions();
     //System.out.println("Test:"+Preferences.getInstance().getDouble("Test", 0));
-    System.out.println(elevator.getOutputCurrent());
+    System.out.println("Elevator motor temp: "+elevator.getMotorTemperature());
+    System.out.println("Lift motor temp: "+rearLift.getMotorTemperature());
+    System.out.println("Arm motor temp: "+arm.getMotorTemperature());
+    
+    
+    
     /*System.out.println("X:"+leftStick.getX()); //not necessary right now 
     System.out.println("Y: "+leftStick.getY());
     System.out.println("Left: "+leftFrontCAN.getAppliedOutput());
     System.out.println("Right: "+rightFrontCAN.getAppliedOutput());*/
   }
+
 }
