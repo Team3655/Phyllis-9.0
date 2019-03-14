@@ -143,8 +143,8 @@ public class Lift extends CANSparkMax{
         p.setReference(pos,ControlType.kPosition);
     }
     public void printSensorPosition(){
-        Robot.eHandler.triggerEvent(new PrintEvent("Sensor Position: "+getEncoder().getPosition()));
-        if (state==State.activePID) Robot.eHandler.triggerEvent(new PrintEvent("Target Position: "+targetPosition));
+        System.out.println("Sensor Position: "+getEncoder().getPosition());
+        if (state==State.activePID) System.out.println("Target Position: "+targetPosition);
     }
     public double getActivationTime(){
         return activationTime;

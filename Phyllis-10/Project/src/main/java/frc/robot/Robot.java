@@ -148,10 +148,10 @@ public class Robot extends TimedRobot {
       tsbAdapter.update();
     }
     if (rearLift.getMotorTemperature()>100){
-      eHandler.triggerEvent(new PrintEvent("WARNING: Rear lift high temperature of "+rearLift.getMotorTemperature()));
+      System.out.println("WARNING: Rear lift high temperature of "+rearLift.getMotorTemperature());
     } else if (rearLift.getMotorTemperature()>200){
       rearLift.off();
-      System.out.println("Rearlift disabled from high temperature of "+rearLift.getMotorTemperature());
+      System.err.println("Rearlift disabled from high temperature of "+rearLift.getMotorTemperature());
     }
     if (solenoid.get()){
       if (System.currentTimeMillis()>solenoidActivationTime+1000){
@@ -162,22 +162,22 @@ public class Robot extends TimedRobot {
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation 
     if (((elevator.getState()==Elevator.State.activeUp&&Math.abs(elevator.getOutputCurrent())>tuningValues.get("eCurUp"))||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>tuningValues.get("eCurDow")&&!climbing)||(elevator.getState()==Elevator.State.activePID&&elevator.getOutputCurrent()>tuningValues.get("eCurPID"))||(elevator.getState()==Elevator.State.active&&elevator.getOutputCurrent()>tuningValues.get("eCurJoy")&&!climbing)||(elevator.getState()==Elevator.State.activeDown&&elevator.getOutputCurrent()>50/*and climbing not necessary to specify*/)) && System.currentTimeMillis()>elevator.getActivationTime()+250){
       elevatorOff();
-      eHandler.triggerEvent(new PrintEvent("Elevator disabled from high output current of "+elevator.getOutputCurrent(),true));
+      System.err.println("Elevator disabled from high output current of "+elevator.getOutputCurrent());
     }
     if (!(rearLift.getState()==Lift.State.off)&&Math.abs(rearLift.getOutputCurrent())>tuningValues.get("lCur") && System.currentTimeMillis()>rearLift.getActivationTime()+500){
       liftOff();
-      eHandler.triggerEvent(new PrintEvent("Rearlift disabled from high output current of "+rearLift.getOutputCurrent(),true));
+      System.err.println("Rearlift disabled from high output current of "+rearLift.getOutputCurrent());
     }
     if (!(arm.getState()==Arm.State.off)&&Math.abs(arm.getOutputCurrent())>17 && System.currentTimeMillis()>arm.getActivationTime()+500){
       armOff();
-      eHandler.triggerEvent(new PrintEvent("Arm disabled from high output current of "+arm.getOutputCurrent(),true));
+      System.err.println("Arm disabled from high output current of "+arm.getOutputCurrent());
     }
     //stop intake at voltage spike
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation
     //no abs value needed for this one because outtake doesn't need to be ended at a voltage spike
     if (iotake.getState()==Iotake.State.activeIn&&iotake.getOutputCurrent()>25 && System.currentTimeMillis()>iotake.getActivationTime()+500){
       iotakeOff();
-      Robot.eHandler.triggerEvent(new PrintEvent("Outtake disabled from high output current",true));
+      System.err.println("Outtake disabled from high output current");
     }
     //debug();
   }
@@ -200,7 +200,7 @@ public class Robot extends TimedRobot {
    */
   public void toggleClimbing(){
     climbing=!climbing;
-    eHandler.triggerEvent(new PrintEvent("CLIMBING MODE SET TO "+String.valueOf(climbing)+" - CHANGE IN ELEVATOR DOWN CURRENT LIMIT"));
+    System.out.println("CLIMBING MODE SET TO "+String.valueOf(climbing)+" - CHANGE IN ELEVATOR DOWN CURRENT LIMIT");
   }
 
   //DRIVE TYPE
@@ -438,11 +438,11 @@ public class Robot extends TimedRobot {
    * 
    */
   public void printSensorPositions(){
-    eHandler.triggerEvent(new PrintEvent("<--ELEVATOR-->"));
+    System.out.println("<--ELEVATOR-->");
     elevator.printSensorPosition();
-    eHandler.triggerEvent(new PrintEvent("<--REAR LIFT-->"));
+    System.out.println("<--REAR LIFT-->");
     rearLift.printSensorPosition();
-    eHandler.triggerEvent(new PrintEvent("<--ARM-->"));
+    System.out.println("<--ARM-->");
     arm.printSensorPosition();
   }
 
