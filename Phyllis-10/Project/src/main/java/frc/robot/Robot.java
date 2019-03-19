@@ -31,7 +31,7 @@ public class Robot extends TimedRobot {
   
   //CLASS VARIABLES
 
-  public static enum driveType {twoJoyStick,oneJoystick};
+  public static enum driveType {twoJoyStick,oneJoystick,climbing};
   public static EventHandler eHandler=new EventHandler();
   private final double voltageCutoff=8.5;
   private DifferentialDrive robot;
@@ -58,6 +58,7 @@ public class Robot extends TimedRobot {
   private Hashtable<String,Double> tuningValues;
   private double Y;
   private final double rampup=.1;
+  private static Robot instance;
   //private ExtendableMotor extendableintakeRight = new ExtendableMotor(intakeRight, 0.05, 1);
   
 
@@ -65,15 +66,16 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() { 
-    UsbCamera front=CameraServer.getInstance().startAutomaticCapture(0); 
-    if (front.isConnected()==false){
+    instance=this;
+    UsbCamera front=CameraServer.getInstance().startAutomaticCapture(); 
+    /*if (front.isConnected()==false){
       front.close();
-    }
+    }*/
     //UsbCamera back=CameraServer.getInstance().startAutomaticCapture(1);
     leftBackCAN.follow(leftFrontCAN);
     rightBackCAN.follow(rightFrontCAN);
-    rightFrontCAN.setInverted(true);
     elevatorF.follow(elevator);
+     eHandler.start();
     //rightFrontCAN.setOpenLoopRampRate(10);
     //leftFrontCAN.setOpenLoopRampRate(10);
     robot = new DifferentialDrive(leftFrontCAN,rightFrontCAN);
@@ -88,25 +90,31 @@ public class Robot extends TimedRobot {
     jsbAdapter=new JSBAdapter(rightStick, this);
     tsbAdapter=new TSBAdapter(tractorPanel, this);
     tuningValues=new Hashtable<>();
-    tuningValues.put("eTop",59.28);
-    tuningValues.put("eBot",2.7);
-    tuningValues.put("eMid",30.8);
-    tuningValues.put("eCar",37.2);
-    tuningValues.put("aCar",-21.8);
-    tuningValues.put("aHat",-6.2);
-    tuningValues.put("aBal",-26.1);
+    tuningValues.put("eTop",44.83285);
+    tuningValues.put("eBot",0.0);
+    tuningValues.put("eMid",22.6903);
+    tuningValues.put("eCar",27.47599);
+    tuningValues.put("aCar",-25.30935);
+    tuningValues.put("aHat",-6.9285);
+    tuningValues.put("aBal",-27.85693);
     tuningValues.put("aSit",.1);
     tuningValues.put("aDec",.1);
     tuningValues.put("lTop",0.0);
     tuningValues.put("lBot",-.5);
 
+    tuningValues.put("aPIDOR",0.0);
+    tuningValues.put("lPIDOR",.0);
+    tuningValues.put("ePIDORUp",.0);
+    tuningValues.put("ePIDORDow",.0);
+
+
     tuningValues.put("eSpdUp",.3);
     tuningValues.put("eSpdDow",.2);
     tuningValues.put("lSpdUp",.8);
-    tuningValues.put("lSpdDow",.6);
+    tuningValues.put("lSpdDow",.8);
     tuningValues.put("eSpdJ",.6);
-    tuningValues.put("aSpd",.4);
-    tuningValues.put("aSpdJ",.4);
+    tuningValues.put("aSpd",.2);
+    tuningValues.put("aSpdJ",.6);
 
     tuningValues.put("eCurUp",52.0);
     tuningValues.put("eCurDow", 8.0);
@@ -142,17 +150,21 @@ public class Robot extends TimedRobot {
   }
   private void periodic(){
     //driving arcade
-    robot.arcadeDrive(rightStick.getY(), xStick.getX()*.75); 
+    if (!climbing){
+      robot.arcadeDrive(-rightStick.getY()*.75, xStick.getX()*.75); 
+    } else {
+      robot.arcadeDrive(-leftStick.getY()*.75, 0);
+    }
     //update button inputs
     if (!(jsbAdapter.equals(null)&&tsbAdapter.equals(null))){
       jsbAdapter.update();
       tsbAdapter.update();
     }
     if (rearLift.getMotorTemperature()>100){
-      System.out.println("WARNING: Rear lift high temperature of "+rearLift.getMotorTemperature());
+      eHandler.triggerEvent(new PrintEvent("WARNING: Rear lift high temperature of "+rearLift.getMotorTemperature()));
     } else if (rearLift.getMotorTemperature()>200){
       rearLift.off();
-      System.err.println("Rearlift disabled from high temperature of "+rearLift.getMotorTemperature());
+      eHandler.triggerEvent(new PrintEvent("Rearlift disabled from high temperature of "+rearLift.getMotorTemperature(),true));
     }
     if (solenoid.get()){
       if (System.currentTimeMillis()>solenoidActivationTime+1000){
@@ -164,25 +176,26 @@ public class Robot extends TimedRobot {
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation 
     if (((elevator.getState()==Elevator.State.activeUp&&Math.abs(elevatorCurrent)>tuningValues.get("eCurUp"))||(elevator.getState()==Elevator.State.activeDown&&elevatorCurrent>tuningValues.get("eCurDow")&&!climbing)||(elevator.getState()==Elevator.State.activePID&&elevatorCurrent>tuningValues.get("eCurPID"))||(elevator.getState()==Elevator.State.active&&elevatorCurrent>tuningValues.get("eCurJoy")&&!climbing)||(elevator.getState()==Elevator.State.activeDown&&elevatorCurrent>50/*and climbing not necessary to specify*/)) && System.currentTimeMillis()>elevator.getActivationTime()+250){
       elevatorOff();
-      System.err.println("Elevator disabled from high output current of "+elevatorCurrent);
+      eHandler.triggerEvent(new PrintEvent("Elevator disabled from high output current of "+elevatorCurrent,true));
     }
     double liftCurrent=rearLift.getOutputCurrent();
     if (!(rearLift.getState()==Lift.State.off)&&Math.abs(liftCurrent)>tuningValues.get("lCur") && System.currentTimeMillis()>rearLift.getActivationTime()+500){
       liftOff();
-      System.err.println("Rearlift disabled from high output current of "+liftCurrent);
+      eHandler.triggerEvent(new PrintEvent("Rearlift disabled from high output current of "+liftCurrent,true));
     }
     double armCurrent=arm.getOutputCurrent();
     if (!(arm.getState()==Arm.State.off)&&Math.abs(armCurrent)>tuningValues.get("aCur") && System.currentTimeMillis()>arm.getActivationTime()+500){
       armOff();
-      System.err.println("Arm disabled from high output current of "+armCurrent);
+      eHandler.triggerEvent(new PrintEvent("Arm disabled from high output current of "+armCurrent,true));
     }
     //stop intake at voltage spike
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation
     //no abs value needed for this one because outtake doesn't need to be ended at a voltage spike
     if (iotake.getState()==Iotake.State.activeIn&&iotake.getOutputCurrent()>25 && System.currentTimeMillis()>iotake.getActivationTime()+500){
       iotakeOff();
-      System.err.println("Intake disabled from high output current");
+      eHandler.triggerEvent(new PrintEvent("Intake disabled from high output current",true));
     }
+    
     //debug();
   }
   @Override
@@ -204,7 +217,12 @@ public class Robot extends TimedRobot {
    */
   public void toggleClimbing(){
     climbing=!climbing;
-    System.out.println("CLIMBING MODE SET TO "+String.valueOf(climbing)+" - CHANGE IN ELEVATOR DOWN CURRENT LIMIT");
+    if (climbing){
+      tsbAdapter.setArmJoystick(rightStick);
+    } else{
+      tsbAdapter.setArmJoystick(tractorPanel);
+    }
+    eHandler.triggerEvent(new PrintEvent("CLIMBING MODE SET TO "+String.valueOf(climbing)+" - CHANGE IN ELEVATOR DOWN CURRENT LIMIT"));
   }
 
   //DRIVE TYPE
@@ -294,10 +312,19 @@ public class Robot extends TimedRobot {
   }
 
   public void elevatorHoldPos(){
-    elevator.off();
+    if (elevator.getEncoder().getPosition()<.8){
+      return;
+    }
     elevator.moveToPos(elevator.getEncoder().getPosition());
   }
 
+  public void elevatorHoldPosOR(){
+    if(elevator.getOutputCurrent()>0){
+      elevator.moveToPos(elevator.getEncoder().getPosition()+tuningValues.get("ePIDORUp"));
+    } else {
+      elevator.moveToPos(elevator.getEncoder().getPosition()-tuningValues.get("ePIDORDow"));      
+    }
+  }
   
   public void elevatorJoystick(){
     elevator.set(tractorPanel.getY()*-tuningValues.get("eSpdJ"));
@@ -354,17 +381,24 @@ public class Robot extends TimedRobot {
     rearLift.down(tuningValues.get("lSpdDow"));
   }
   public void liftHoldPos(){
-    rearLift.moveToPos(rearLift.getEncoder().getPosition());
+    //rearLift.moveToPos(rearLift.getEncoder().getPosition());
+  }
+  public void liftHoldPosOR(){
+    /*if(rearLift.getOutputCurrent()>0){
+      rearLift.moveToPos(rearLift.getEncoder().getPosition()+tuningValues.get("lPIDOR"));
+    } else {
+      rearLift.moveToPos(rearLift.getEncoder().getPosition()-tuningValues.get("lPIDOR"));
+    }*/
   }
   /**Moves lift to raised position
    * 
    */
   public void liftRaise(){
-    rearLift.moveToPos(tuningValues.get("lTop"),tuningValues.get("lSpdUp"));
+    //rearLift.moveToPos(tuningValues.get("lTop"),tuningValues.get("lSpdUp"));
   }
 
   public void liftLower(){
-    rearLift.moveToPos(tuningValues.get("lBot"),tuningValues.get("lSpdUp"));
+    //rearLift.moveToPos(tuningValues.get("lBot"),tuningValues.get("lSpdUp"));
   }
   /**Turns lift off
    * 
@@ -387,12 +421,20 @@ public class Robot extends TimedRobot {
     arm.down(tuningValues.get("aSpd"));
   }
 
-  public void armJoystick() {
-    arm.set(tractorPanel.getX()*-tuningValues.get("aSpdJ"));
+  public void armJoystick(Joystick j) {
+    arm.set(j.getX()*tuningValues.get("aSpdJ"));
   }
 
   public void armHoldPos(){
     arm.moveToPos(arm.getEncoder().getPosition());
+  }
+
+  public void armHoldPosOR(){
+    if (arm.getOutputCurrent()>0){
+      arm.moveToPos(arm.getEncoder().getPosition()+tuningValues.get("aPIDOR"));
+    } else {
+      arm.moveToPos(arm.getEncoder().getPosition()-tuningValues.get("aPIDOR"));
+    }
   }
 
   public void armSit(){
@@ -424,14 +466,14 @@ public class Robot extends TimedRobot {
    * 
    */
   public void outtake(){
-    iotake.outtake(.6);
+    iotake.outtake(.5);
   }
 
   /**Initiates intake
    * 
    */
   public void intake(){
-    iotake.intake(.75);
+    iotake.intake(.8);
   }
 
   /**Turns iotake off
@@ -448,11 +490,11 @@ public class Robot extends TimedRobot {
    * 
    */
   public void printSensorPositions(){
-    System.out.println("<--ELEVATOR-->");
+    eHandler.triggerEvent(new PrintEvent("<--ELEVATOR-->"));
     elevator.printSensorPosition();
-    System.out.println("<--REAR LIFT-->");
+    eHandler.triggerEvent(new PrintEvent("<--REAR LIFT-->"));
     rearLift.printSensorPosition();
-    System.out.println("<--ARM-->");
+    eHandler.triggerEvent(new PrintEvent("<--ARM-->"));
     arm.printSensorPosition();
   }
 
@@ -462,17 +504,22 @@ public class Robot extends TimedRobot {
    */
   public void debug(){
     //printSensorPositions();
-    //System.out.println("Test:"+Preferences.getInstance().getDouble("Test", 0));
-    System.out.println("Elevator motor temp: "+elevator.getMotorTemperature());
-    System.out.println("Lift motor temp: "+rearLift.getMotorTemperature());
-    System.out.println("Arm motor temp: "+arm.getMotorTemperature());
+    //eHandler.triggerEvent(new PrintEvent("Test:"+Preferences.getInstance().getDouble("Test", 0));
+    eHandler.triggerEvent(new PrintEvent("Elevator motor temp: "+elevator.getMotorTemperature()));
+    eHandler.triggerEvent(new PrintEvent("Lift motor temp: "+rearLift.getMotorTemperature()));
+    eHandler.triggerEvent(new PrintEvent("Arm motor temp: "+arm.getMotorTemperature()));
     
     
     
-    /*System.out.println("X:"+leftStick.getX()); //not necessary right now 
-    System.out.println("Y: "+leftStick.getY());
-    System.out.println("Left: "+leftFrontCAN.getAppliedOutput());
-    System.out.println("Right: "+rightFrontCAN.getAppliedOutput());*/
+    /*eHandler.triggerEvent(new PrintEvent("X:"+leftStick.getX()); //not necessary right now 
+    eHandler.triggerEvent(new PrintEvent("Y: "+leftStick.getY());
+    eHandler.triggerEvent(new PrintEvent("Left: "+leftFrontCAN.getAppliedOutput());
+    eHandler.triggerEvent(new PrintEvent("Right: "+rightFrontCAN.getAppliedOutput());*/
+  }
+
+
+  public static Robot getInstance(){
+    return instance;
   }
 
 }

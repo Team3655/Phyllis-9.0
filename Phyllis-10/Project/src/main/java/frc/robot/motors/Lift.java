@@ -19,16 +19,16 @@ public class Lift extends CANSparkMax{
     private double targetPosition;
     private CANPIDController p;
     public Lift(){
-        super(22,MotorType.kBrushless);
+        super(22,MotorType.kBrushed);
         defaultDemand=.75;
         state=State.off;
-        getEncoder().setPosition(0);
+        /*getEncoder().setPosition(0);
         p=getPIDController();
         p.setP(1);
         p.setD(0);
         p.setI(0);
         p.setFF(0);
-        p.setOutputRange(.75, .75);
+        p.setOutputRange(.75, .75);*/
         
     
     }
@@ -143,8 +143,8 @@ public class Lift extends CANSparkMax{
         p.setReference(pos,ControlType.kPosition);
     }
     public void printSensorPosition(){
-        System.out.println("Sensor Position: "+getEncoder().getPosition());
-        if (state==State.activePID) System.out.println("Target Position: "+targetPosition);
+        Robot.eHandler.triggerEvent(new PrintEvent("Sensor Position: "+getEncoder().getPosition()));
+        if (state==State.activePID) Robot.eHandler.triggerEvent(new PrintEvent("Target Position: "+targetPosition));
     }
     public double getActivationTime(){
         return activationTime;

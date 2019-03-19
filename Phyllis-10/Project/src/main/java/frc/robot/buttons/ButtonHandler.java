@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.buttons.*;
 /**
  * Handles button presses without commands (specify actions in an extended class)
  */
-abstract class ButtonHandler {
+public abstract class ButtonHandler {
     private GenericHID buttonInterface;
     private int buttonNo;
     /**Initializes a button handler with specified numberof buttons
@@ -34,7 +34,7 @@ abstract class ButtonHandler {
         }
         
     }
-    public boolean getButtonDown(int no){
+    public final boolean getButtonDown(int no){
         return buttonInterface.getRawButton(no);
     }
     /**
@@ -52,11 +52,21 @@ abstract class ButtonHandler {
      * @param no the button that was pressed
      */
     abstract void buttonDown(int no);
-    public double getY(){
+    public final double getY(){
         return buttonInterface.getY();
     }
-    public double getX(){
+    public final double getX(){
         return buttonInterface.getX();
     }
+    public Joystick getJoystick(){
+        return (Joystick) buttonInterface;
+    }
 
+    public void simButtonPress(int no){
+        buttonPressed(no);
+    }
+
+    public void simButtonRelease(int no){
+        buttonReleased(no);
+    }
 }

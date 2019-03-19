@@ -15,10 +15,25 @@ public class PrintEvent extends Event{
         text=s;
         this.err=err;
     }
+    public PrintEvent(String s,long delay,boolean err){
+        super();
+        text=s;
+        this.err=err;
+    }
     public PrintEvent(int i){
         super();
         text=String.valueOf(i);
         err=false;
+    }
+    public PrintEvent(int i,boolean err){
+        super();
+        text=String.valueOf(i);
+        this.err=err;
+    }
+    public PrintEvent(int i,long delay,boolean err){
+        super(delay);
+        text=String.valueOf(i);
+        this.err=err;
     }
     public PrintEvent(Object o){
         super();
@@ -55,6 +70,10 @@ public class PrintEvent extends Event{
         err=false;
     }
     public void task(){
-        System.out.print(text);
+        if (!err){
+            System.out.println(text);
+        } else {
+            System.err.println(text);
+        }
     }
 }
