@@ -12,6 +12,7 @@ public class EventSequence {
         this.events=events;
         stage=0;
         sequenceComplete=false;
+        events[stage].resetTriggerTime();
     }
 
     public void triggerNext(){

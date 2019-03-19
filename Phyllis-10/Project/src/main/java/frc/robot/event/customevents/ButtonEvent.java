@@ -7,8 +7,8 @@ public class ButtonEvent extends Event{
     private boolean buttonReleased;
     private ButtonHandler buttonHandler;
     private int no;
-    public ButtonEvent(long delay,ButtonHandler b,int no){
-        super(delay);
+    public ButtonEvent(long delay,long duration,ButtonHandler b,int no){
+        super(delay,duration);
         buttonReleased=false;
         buttonHandler=b;
         this.no=no;
