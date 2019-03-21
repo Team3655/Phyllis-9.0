@@ -408,12 +408,12 @@ public class TSBAdapter extends ButtonHandler{
     @Override
     public void update() {
         super.update();
-        if (Math.abs(getY())<.05&&!(elevatorControlMode==ControlMode.PID)){
+        if (Math.abs(getY())<.07&&!(elevatorControlMode==ControlMode.PID)){
             robot.elevatorHoldPos();
             elevatorControlMode=ControlMode.PID;
         } else if (!(getButtonDown(1)||getButtonDown(6))&&elevatorControlMode==ControlMode.Joystick){
             robot.elevatorJoystick();
-        } else if (Math.abs(getY())>.05&&!(elevatorControlMode==ControlMode.Joystick)){
+        } else if (Math.abs(getY())>.07&&!(elevatorControlMode==ControlMode.Joystick)){
             elevatorControlMode=ControlMode.Joystick;
         }
         if (Math.abs(getX())<.05&&!(armControlMode==ControlMode.PID)){
@@ -434,4 +434,5 @@ public class TSBAdapter extends ButtonHandler{
     public void setMode(Mode mode){
         this.mode=mode;
     }
+
 }

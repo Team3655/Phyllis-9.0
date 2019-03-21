@@ -19,16 +19,16 @@ public class Lift extends CANSparkMax{
     private double targetPosition;
     private CANPIDController p;
     public Lift(){
-        super(22,MotorType.kBrushed);
+        super(22,MotorType.kBrushless);
         defaultDemand=.75;
         state=State.off;
-        /*getEncoder().setPosition(0);
+        getEncoder().setPosition(0);
         p=getPIDController();
         p.setP(1);
         p.setD(0);
         p.setI(0);
         p.setFF(0);
-        p.setOutputRange(.75, .75);*/
+        p.setOutputRange(.75, .75);
         
     
     }
