@@ -22,6 +22,9 @@ import frc.robot.motors.ExtendableMotor;
 import frc.robot.motors.Iotake;
 import frc.robot.motors.Lift;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.revrobotics.*;
 import com.revrobotics.CANSparkMax.IdleMode;
 
@@ -41,7 +44,8 @@ public class Robot extends TimedRobot {
   private Joystick xStick;
   private JSBAdapter jsbAdapter;
   private TSBAdapter tsbAdapter;
-  private Solenoid solenoid;
+  private Solenoid diskPush;
+  private Solenoid diskBlowoff;
   private long solenoidActivationTime;
   private Compressor compressor;
   private CANSparkMax leftFrontCAN=new CANSparkMax(10,CANSparkMaxLowLevel.MotorType.kBrushless);
@@ -52,6 +56,7 @@ public class Robot extends TimedRobot {
   private CANSparkMax elevatorF=new CANSparkMax(20, CANSparkMaxLowLevel.MotorType.kBrushless);
   private Iotake iotake=new Iotake();//Iotake is intake/outtake system
   private Arm arm=new Arm();
+  private TalonSRX vaccum=new TalonSRX(24);
   private Lift rearLift=new Lift();
   private AnalogGyro gyro=new AnalogGyro(0);
   private Boolean climbing;
@@ -66,6 +71,14 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() { 
+    if (!(instance==null)){
+      try {
+        throw new Exception("Robot class already initialized");
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      return;
+    }
     instance=this;
     UsbCamera front=CameraServer.getInstance().startAutomaticCapture(); 
     /*if (front.isConnected()==false){
@@ -79,10 +92,12 @@ public class Robot extends TimedRobot {
     //rightFrontCAN.setOpenLoopRampRate(10);
     //leftFrontCAN.setOpenLoopRampRate(10);
     robot = new DifferentialDrive(leftFrontCAN,rightFrontCAN);
+
     elevator.setIdleMode(IdleMode.kBrake);
     elevatorF.setIdleMode(IdleMode.kBrake);
     rearLift.setIdleMode(IdleMode.kBrake);
     arm.setIdleMode(IdleMode.kBrake);
+    vaccum.setNeutralMode(NeutralMode.Coast);
     leftStick = new Joystick(0);
     rightStick = new Joystick(1);
     xStick = leftStick;
@@ -123,7 +138,8 @@ public class Robot extends TimedRobot {
     tuningValues.put("lCur", 80.0);
     tuningValues.put("aCur", 120.0);
     climbing=false;
-    solenoid=new Solenoid(0);
+    diskPush=new Solenoid(0);
+    diskBlowoff=new Solenoid(1);
     compressor=new Compressor(0); //DOUBLE CHECK IDS
     solenoidActivationTime=0;
   }
@@ -166,11 +182,11 @@ public class Robot extends TimedRobot {
       rearLift.off();
       eHandler.triggerEvent(new PrintEvent("Rearlift disabled from high temperature of "+rearLift.getMotorTemperature(),true));
     }
-    if (solenoid.get()){
+    /*if (diskPush.get()){
       if (System.currentTimeMillis()>solenoidActivationTime+1000){
-        solenoid.set(false);
+        diskPush.set(false);
       }
-    }
+    }*/
     double elevatorCurrent=elevator.getOutputCurrent();
     //stop elevator at current spike
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation 
@@ -203,6 +219,7 @@ public class Robot extends TimedRobot {
     if (!(tsbAdapter==null)){
       tsbAdapter.setMode(TSBAdapter.Mode.Tune);
     }
+    vaccum.set(ControlMode.PercentOutput, 1);
   }
   @Override
   public void disabledPeriodic() {
@@ -268,10 +285,19 @@ public class Robot extends TimedRobot {
 
   //PNUEMATICS
 
+  public void pushSuckers(boolean on){
+    diskPush.set(on);
+  }
+
   /**Activates/deactivates solenoid to fire hatch*/
   public void fireHatch(boolean on){
-    solenoid.set(on);
-    solenoidActivationTime=System.currentTimeMillis();
+    diskBlowoff.set(on);
+    if (on){
+      vaccum.set(ControlMode.PercentOutput,0);
+    } else {
+      vaccum.set(ControlMode.PercentOutput,1);
+    }
+    //solenoidActivationTime=System.currentTimeMillis();
   }
   /**Toggle compressor
    * 

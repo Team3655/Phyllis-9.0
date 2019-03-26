@@ -7,6 +7,7 @@ import frc.robot.Robot;
 import frc.robot.event.Event;
 import frc.robot.event.EventSequence;
 import frc.robot.event.customevents.ArmHoldPosEvent;
+import frc.robot.event.customevents.DiskPushEvent;
 import frc.robot.event.customevents.PrintEvent;
 import frc.robot.motors.Elevator;
 /**Tractor Simulator Button Adapter for long
@@ -81,6 +82,7 @@ public class TSBAdapter extends ButtonHandler{
                 break;
                 //button 5 puts lift in raised position
                 case 5:
+                    robot.pushSuckers(true);
                     //robot.liftRaise();
                 break;
                 //button 10 puts lift in lowered position
@@ -103,6 +105,7 @@ public class TSBAdapter extends ButtonHandler{
                 //button 15 puts arm in hatch position
                 case 15:
                     robot.armHatch();
+                    robot.pushSuckers(true);
                     armControlMode=ControlMode.PID;
                 break;
                 //button 14 puts arm at deck height
@@ -125,7 +128,7 @@ public class TSBAdapter extends ButtonHandler{
                 break;
                 //button 20 fires a loaded hatch
                 case 20:
-                    robot.fireHatch(true);
+                    Robot.eHandler.triggerEvent(new DiskPushEvent(1000));
                 break;
                 //button 21 toggles the compressor
                 case 21:
@@ -330,7 +333,7 @@ public class TSBAdapter extends ButtonHandler{
                 break;
                 //button 20 fires a loaded hatch
                 case 20:
-                    robot.fireHatch(true);
+                    Robot.eHandler.triggerEvent(new DiskPushEvent(1000));
                 break;
                 //button 21 toggles the compressor
                 case 21:

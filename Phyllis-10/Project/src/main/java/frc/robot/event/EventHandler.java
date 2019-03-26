@@ -1,21 +1,23 @@
 package frc.robot.event;
 
 import java.util.ArrayList;
-import java.util.ConcurrentModificationException; 
+import java.util.ConcurrentModificationException;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**A seprate thread to handle events
  * 
  */
 public class EventHandler extends Thread{
     private boolean enabled;
-    private ArrayList<Event> queuedEvents;
-    private ArrayList<EventSequence> activeSequences;
+    private List<Event> queuedEvents;
+    private List<EventSequence> activeSequences;
     private enum ModifyingThread{EventHandler,Main};
     private ModifyingThread modifyingThread;
     private boolean modifierLocked;
     public EventHandler(){
-        queuedEvents=new ArrayList<Event>();
-        activeSequences=new ArrayList<EventSequence>();
+        queuedEvents=new CopyOnWriteArrayList<Event>();
+        activeSequences=new CopyOnWriteArrayList<EventSequence>();
         setDaemon(true);
         modifierLocked=false;
         modifyingThread=ModifyingThread.EventHandler;
@@ -32,7 +34,7 @@ public class EventHandler extends Thread{
             }
             if (modifyingThread==ModifyingThread.EventHandler){
                 modifierLocked=true;
-                try {
+                //try {
                     for (Event e:queuedEvents){
                         e.trigger();
                         if (e.taskDone()){
@@ -45,9 +47,9 @@ public class EventHandler extends Thread{
                             activeSequences.remove(e);
                         }
                     }
-                } catch (ConcurrentModificationException ex){
+                //} catch (ConcurrentModificationException ex){
                     //class is being accessed from external thread
-                }
+                //}
             }
         }
     }
@@ -57,22 +59,23 @@ public class EventHandler extends Thread{
      * @return wheather the opperation was successful
      */
     public boolean triggerEvent(Event e){
-        try{
+        /*try{
             if (setModifier(ModifyingThread.Main)){
                 modifierLocked=true;
-                if (modifyingThread==ModifyingThread.Main){
+                if (modifyingThread==ModifyingThread.Main){*/
                     queuedEvents.add(e);
-                }
+                /*}
             } else {
                 return false;
             }
             modifierLocked=false;
             setModifier(ModifyingThread.EventHandler);
+            */
             return true;
-        } catch (Exception ex){
+        /*} catch (Exception ex){
             ex.printStackTrace();
             return false;
-        }
+        }*/
     }
 
 /**Adds an event to the event queue
@@ -81,22 +84,22 @@ public class EventHandler extends Thread{
      * @return wheather the opperation was successful
      */
     public boolean triggerEvent(EventSequence e){
-        try{
+        /*try{
             if (setModifier(ModifyingThread.Main)){
                 modifierLocked=true;
-                if (modifyingThread==ModifyingThread.Main){
+                if (modifyingThread==ModifyingThread.Main){*/
                     activeSequences.add(e);
-                }
+                /*}
             } else {
                 return false;
             }
             modifierLocked=false;
-            setModifier(ModifyingThread.EventHandler);
+            */setModifier(ModifyingThread.EventHandler);
             return true;
-        } catch (Exception ex){
+        /*} catch (Exception ex){
             ex.printStackTrace();
             return false;
-        }
+        }*/
     }
 
     /**Enables thread
@@ -104,42 +107,42 @@ public class EventHandler extends Thread{
      * @return wheather the operation was successful
      */
     public boolean enable(){
-        try{
+        /*try{
             if (setModifier(ModifyingThread.Main)){
-                modifierLocked=true;
+                modifierLocked=true;*/
                 enabled=true;
-            } else {
+            /*} else {
                 return false;
             }
             modifierLocked=false;
             setModifier(ModifyingThread.EventHandler);
-            modifierLocked=true;
+            modifierLocked=true;*/
             return true;
-        } catch (Exception ex){
+        /*} catch (Exception ex){
             ex.printStackTrace();
             return false;
-        }
+        }*/
     }
     /**Ends thread
      * 
      * @return wheather the operation was successful
      */
     public boolean disable(){
-        try{
+        /*try{
             if (setModifier(ModifyingThread.Main)){
-                modifierLocked=true;
+                modifierLocked=true;*/
                 enabled=false;
-            } else {
+            /*} else {
                 return false;
             }
             modifierLocked=false;
             setModifier(ModifyingThread.EventHandler);
-            modifierLocked=true;
+            modifierLocked=true;*/
             return true;
-        } catch (Exception ex){
+        /*} catch (Exception ex){
             ex.printStackTrace();
             return false;
-        }
+        }*/
     }
     private boolean setModifier(ModifyingThread modifyingThread){
         if (!modifierLocked){
