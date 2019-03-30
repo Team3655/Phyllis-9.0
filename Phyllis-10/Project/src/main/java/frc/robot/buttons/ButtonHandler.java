@@ -13,6 +13,7 @@ import frc.robot.Robot;
  * Handles button presses without commands (specify actions in an extended class)
  */
 public abstract class ButtonHandler extends Thread{
+    private boolean enabled;
     private GenericHID buttonInterface;
     private int buttonNo;
     /**Initializes a button handler with specified numberof buttons
@@ -23,11 +24,18 @@ public abstract class ButtonHandler extends Thread{
     public ButtonHandler(GenericHID buttonInterface,int buttonNo){
         this.buttonInterface=buttonInterface;
         this.buttonNo=buttonNo;
+        enabled=true;
         start();
     }
     @Override
     public void run(){
-        while (true){
+        while (enabled){
+            try {
+                Thread.sleep(2);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
             update();
         }
     }
@@ -81,5 +89,8 @@ public abstract class ButtonHandler extends Thread{
 
     public void simButtonRelease(int no){
         buttonReleased(no);
+    }
+    public void disable(){
+        enabled=false;
     }
 }

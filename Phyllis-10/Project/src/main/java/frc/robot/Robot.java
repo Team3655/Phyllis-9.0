@@ -108,6 +108,7 @@ public class Robot extends TimedRobot {
     tuningValues.put("eBot",0.0);
     tuningValues.put("eMid",22.6903);
     tuningValues.put("eCar",27.47599);
+    tuningValues.put("eHat",6.7857);
     tuningValues.put("aCar",-25.30935);
     tuningValues.put("aHat",-6.9285);
     tuningValues.put("aBal",-27.85693);
@@ -156,6 +157,8 @@ public class Robot extends TimedRobot {
     if (!(tsbAdapter==null)){
       tsbAdapter.setMode(TSBAdapter.Mode.RobotResponse);
     }
+    pushSuckers(true);
+    setVaccum(true);
   }
   @Override
   public void autonomousPeriodic() {
@@ -203,6 +206,9 @@ public class Robot extends TimedRobot {
     if (iotake.getState()==Iotake.State.activeIn&&iotake.getOutputCurrent()>25 && System.currentTimeMillis()>iotake.getActivationTime()+500){
       iotakeOff();
       eHandler.triggerEvent(new PrintEvent("Intake disabled from high output current",true));
+    }
+    if (vaccum.getOutputCurrent()>10){
+      vaccum.set(ControlMode.PercentOutput, .3);
     }
     
     //debug();
@@ -476,7 +482,9 @@ public class Robot extends TimedRobot {
 
   public void armHatch(){
     arm.moveToPos(tuningValues.get("aHat"),tuningValues.get("aSpd"));
+    elevator.moveToPos(tuningValues.get("eHat"), tuningValues.get("eSpdDow"), tuningValues.get("eSpdUp"));
   }
+
 
   public void armBall(){
     arm.moveToPos(tuningValues.get("aBal"),tuningValues.get("aSpd"));
