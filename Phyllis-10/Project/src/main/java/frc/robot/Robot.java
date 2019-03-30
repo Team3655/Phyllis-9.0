@@ -46,7 +46,6 @@ public class Robot extends TimedRobot {
   private TSBAdapter tsbAdapter;
   private Solenoid diskPush;
   private Solenoid diskBlowoff;
-  private long solenoidActivationTime;
   private Compressor compressor;
   private CANSparkMax leftFrontCAN=new CANSparkMax(10,CANSparkMaxLowLevel.MotorType.kBrushless);
   private CANSparkMax leftBackCAN=new CANSparkMax(11,CANSparkMaxLowLevel.MotorType.kBrushless);
@@ -141,7 +140,6 @@ public class Robot extends TimedRobot {
     diskPush=new Solenoid(0);
     diskBlowoff=new Solenoid(1);
     compressor=new Compressor(0); //DOUBLE CHECK IDS
-    solenoidActivationTime=0;
   }
   @Override
   public void teleopInit() {
@@ -172,21 +170,16 @@ public class Robot extends TimedRobot {
       robot.arcadeDrive(-leftStick.getY()*.75, 0);
     }
     //update button inputs
-    if (!(jsbAdapter.equals(null)&&tsbAdapter.equals(null))){
+    /*if (!(jsbAdapter.equals(null)&&tsbAdapter.equals(null))){
       jsbAdapter.update();
       tsbAdapter.update();
-    }
+    }*/
     if (rearLift.getMotorTemperature()>100){
       eHandler.triggerEvent(new PrintEvent("WARNING: Rear lift high temperature of "+rearLift.getMotorTemperature()));
     } else if (rearLift.getMotorTemperature()>200){
       rearLift.off();
       eHandler.triggerEvent(new PrintEvent("Rearlift disabled from high temperature of "+rearLift.getMotorTemperature(),true));
     }
-    /*if (diskPush.get()){
-      if (System.currentTimeMillis()>solenoidActivationTime+1000){
-        diskPush.set(false);
-      }
-    }*/
     double elevatorCurrent=elevator.getOutputCurrent();
     //stop elevator at current spike
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation 
@@ -219,11 +212,11 @@ public class Robot extends TimedRobot {
     if (!(tsbAdapter==null)){
       tsbAdapter.setMode(TSBAdapter.Mode.Tune);
     }
-    vaccum.set(ControlMode.PercentOutput, 1);
+    //vaccum.set(ControlMode.PercentOutput, 1);
   }
   @Override
   public void disabledPeriodic() {
-    tsbAdapter.update();
+    //tsbAdapter.update();
   }
 
   //CLIMBING
@@ -241,7 +234,13 @@ public class Robot extends TimedRobot {
     }
     eHandler.triggerEvent(new PrintEvent("CLIMBING MODE SET TO "+String.valueOf(climbing)+" - CHANGE IN ELEVATOR DOWN CURRENT LIMIT"));
   }
-
+  public void setVaccum(boolean b){
+    if (b){
+      vaccum.set(ControlMode.PercentOutput, 1);
+    } else {
+      vaccum.set(ControlMode.PercentOutput,0);
+    }
+  }
   //DRIVE TYPE
 
   /**Set drive type e.g. <code>driveType.oneJoystick</code> for one joystick arcade drive
@@ -269,7 +268,6 @@ public class Robot extends TimedRobot {
     }
   }
 
-
   //TUNING
   public double getTuningValue(String key){
     return tuningValues.get(key);
@@ -288,11 +286,14 @@ public class Robot extends TimedRobot {
   public void pushSuckers(boolean on){
     diskPush.set(on);
   }
+  public void toggleSuckerPos(){
+    diskPush.set(!diskPush.get());
+  }
 
   /**Activates/deactivates solenoid to fire hatch*/
   public void fireHatch(boolean on){
     diskBlowoff.set(on);
-    if (on){
+    if (!on){
       vaccum.set(ControlMode.PercentOutput,0);
     } else {
       vaccum.set(ControlMode.PercentOutput,1);

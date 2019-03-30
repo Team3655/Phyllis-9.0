@@ -83,6 +83,7 @@ public class TSBAdapter extends ButtonHandler{
                 //button 5 puts lift in raised position
                 case 5:
                     robot.pushSuckers(true);
+                    robot.setVaccum(true);
                     //robot.liftRaise();
                 break;
                 //button 10 puts lift in lowered position
@@ -106,6 +107,7 @@ public class TSBAdapter extends ButtonHandler{
                 case 15:
                     robot.armHatch();
                     robot.pushSuckers(true);
+                    robot.setVaccum(true);
                     armControlMode=ControlMode.PID;
                 break;
                 //button 14 puts arm at deck height
@@ -128,7 +130,7 @@ public class TSBAdapter extends ButtonHandler{
                 break;
                 //button 20 fires a loaded hatch
                 case 20:
-                    Robot.eHandler.triggerEvent(new DiskPushEvent(1000));
+                    Robot.eHandler.triggerEvent(new DiskPushEvent(100));
                 break;
                 //button 21 toggles the compressor
                 case 21:

@@ -1,12 +1,18 @@
 package frc.robot.buttons;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.buttons.*;
+import frc.robot.Robot;
 /**
  * Handles button presses without commands (specify actions in an extended class)
  */
-public abstract class ButtonHandler {
+public abstract class ButtonHandler extends Thread{
     private GenericHID buttonInterface;
     private int buttonNo;
     /**Initializes a button handler with specified numberof buttons
@@ -17,6 +23,13 @@ public abstract class ButtonHandler {
     public ButtonHandler(GenericHID buttonInterface,int buttonNo){
         this.buttonInterface=buttonInterface;
         this.buttonNo=buttonNo;
+        start();
+    }
+    @Override
+    public void run(){
+        while (true){
+            update();
+        }
     }
     /**Call during a periodic function in order to regocnize button events
      * 
