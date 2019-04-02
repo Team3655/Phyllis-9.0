@@ -119,6 +119,22 @@ public class Iotake {
             state=State.activeOut;
         }
     }
+    public void outtakeRight(double demand){
+        //necessary so pushing button multiple times doesn't screw up activation time
+        if (!(state==State.activeOut)){
+            right.set(ControlMode.PercentOutput,Math.abs(demand));
+            activationTime=System.currentTimeMillis();
+            state=State.activeOut;
+        }
+    }
+    public void outtakeLeft(double demand){
+        //necessary so pushing button multiple times doesn't screw up activation time
+        if (!(state==State.activeOut)){
+            left.set(ControlMode.PercentOutput,Math.abs(demand));
+            activationTime=System.currentTimeMillis();
+            state=State.activeOut;
+        }
+    }
     public void outtake(ControlMode Mode, double demand){
         //necessary so pushing button multiple times doesn't screw up activation time
         if (!(state==State.activeOut)){

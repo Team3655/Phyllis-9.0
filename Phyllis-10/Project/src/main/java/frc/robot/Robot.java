@@ -130,6 +130,7 @@ public class Robot extends TimedRobot {
     tuningValues.put("eSpdJ",.6);
     tuningValues.put("aSpd",.2);
     tuningValues.put("aSpdJ",.6);
+    tuningValues.put("iSpd",.8);
 
     tuningValues.put("eCurUp",52.0);
     tuningValues.put("eCurDow", 8.0);
@@ -210,7 +211,6 @@ public class Robot extends TimedRobot {
     if (vaccum.getOutputCurrent()>10){
       vaccum.set(ControlMode.PercentOutput, .3);
     }
-    
     //debug();
   }
   @Override
@@ -242,7 +242,7 @@ public class Robot extends TimedRobot {
   }
   public void setVaccum(boolean b){
     if (b){
-      vaccum.set(ControlMode.PercentOutput, 1);
+      vaccum.set(ControlMode.PercentOutput, .3);
     } else {
       vaccum.set(ControlMode.PercentOutput,0);
     }
@@ -414,7 +414,7 @@ public class Robot extends TimedRobot {
     rearLift.down(tuningValues.get("lSpdDow"));
   }
   public void liftHoldPos(){
-    //rearLift.moveToPos(rearLift.getEncoder().getPosition());
+    rearLift.moveToPos(rearLift.getEncoder().getPosition());
   }
   public void liftHoldPosOR(){
     /*if(rearLift.getOutputCurrent()>0){
@@ -504,11 +504,25 @@ public class Robot extends TimedRobot {
     iotake.outtake(.5);
   }
 
+  /**Activates outtake
+   * 
+   */
+  public void outtakeLeft(){
+    iotake.outtakeLeft(.5);
+  }
+
+  /**Activates outtake
+   * 
+   */
+  public void outtakeRight(){
+    iotake.outtakeRight(.5);
+  }
+
   /**Initiates intake
    * 
    */
   public void intake(){
-    iotake.intake(.8);
+    iotake.intake(tuningValues.get("iSpd"));
   }
 
   /**Turns iotake off
@@ -540,11 +554,18 @@ public class Robot extends TimedRobot {
   public void debug(){
     //printSensorPositions();
     //eHandler.triggerEvent(new PrintEvent("Test:"+Preferences.getInstance().getDouble("Test", 0));
+    eHandler.triggerEvent(new PrintEvent("<<||>>--<<<|Debug|>>>--<<||>>"));
     eHandler.triggerEvent(new PrintEvent("Elevator motor temp: "+elevator.getMotorTemperature()));
     eHandler.triggerEvent(new PrintEvent("Lift motor temp: "+rearLift.getMotorTemperature()));
     eHandler.triggerEvent(new PrintEvent("Arm motor temp: "+arm.getMotorTemperature()));
-    
-    
+    eHandler.triggerEvent(new PrintEvent("<<----Vaccum---->>"));
+    eHandler.triggerEvent(new PrintEvent("<<----Voltage: "+vaccum.getMotorOutputVoltage()));
+    eHandler.triggerEvent(new PrintEvent("<<----Current: "+vaccum.getOutputCurrent()));
+    eHandler.triggerEvent(new PrintEvent("<<----Temp: "+vaccum.getTemperature()));
+    eHandler.triggerEvent(new PrintEvent("<<----Output %: "+vaccum.getMotorOutputPercent()));
+    eHandler.triggerEvent(new PrintEvent("<<-------------->>"));
+    eHandler.triggerEvent(new PrintEvent("<<||>>--<<<|_-^-_|>>>--<<||>>"));
+
     
     /*eHandler.triggerEvent(new PrintEvent("X:"+leftStick.getX()); //not necessary right now 
     eHandler.triggerEvent(new PrintEvent("Y: "+leftStick.getY());

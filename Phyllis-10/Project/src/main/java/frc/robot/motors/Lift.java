@@ -29,7 +29,8 @@ public class Lift extends CANSparkMax{
         p.setI(0);
         p.setFF(0);
         p.setOutputRange(.75, .75);
-        
+        CANSparkMax helper=new CANSparkMax(25, MotorType.kBrushless);
+        helper.follow(this);
     
     }
     /*public Lift(int id){

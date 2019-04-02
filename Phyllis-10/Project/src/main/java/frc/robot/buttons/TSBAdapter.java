@@ -20,7 +20,7 @@ public class TSBAdapter extends ButtonHandler{
     private ControlMode elevatorControlMode;
     private ControlMode armControlMode;
     private Mode mode;
-    private String[] tuningValues={"eTop","eBot","eMid","eCar","eHat","aCar","aHat","aBal","aSit","aDec","lTop","lBot","aPIDOR","lPIDOR","ePIDORUp","ePIDORDow","eSpdUp","eSpdDow","lSpdUp","lSpdDow","eSpdJ","aSpd","aSpdJ","eCurUp","eCurDow","eCurPID","eCurJoy","lCur","aCur"};
+    private String[] tuningValues={"eTop","eBot","eMid","eCar","eHat","aCar","aHat","aBal","aSit","aDec","lTop","lBot","aPIDOR","lPIDOR","ePIDORUp","ePIDORDow","eSpdUp","eSpdDow","lSpdUp","lSpdDow","eSpdJ","aSpd","aSpdJ","iSpd","eCurUp","eCurDow","eCurPID","eCurJoy","lCur","aCur"};
     private int currentPropertyNo;
     private String currentTuningValue;
     private String inputCache;
@@ -80,10 +80,13 @@ public class TSBAdapter extends ButtonHandler{
                 case 9:
                     robot.liftDown();
                 break;
-                //button 5 puts lift in raised position
+                //button 5 turns lift off//puts lift in raised position
                 case 5:
-                    robot.pushSuckers(true);
-                    robot.setVaccum(true);
+                    robot.liftOff();    
+
+                    /*robot.pushSuckers(true);
+                    robot.setVaccum(true);*/
+
                     //robot.liftRaise();
                 break;
                 //button 10 puts lift in lowered position
@@ -122,11 +125,11 @@ public class TSBAdapter extends ButtonHandler{
                 break;
                 //button 17 initiates intake
                 case 17:
-                    robot.intake();
+                    robot.outtakeLeft();
                 break;
                 //button 18 outakes (shoots)
                 case 18:
-                    robot.outtake();
+                    robot.outtakeRight();
                 break;
                 //button 20 fires a loaded hatch
                 case 20:
@@ -143,6 +146,7 @@ public class TSBAdapter extends ButtonHandler{
                     robot.liftOff();
                     robot.fireHatch(false);
                     robot.iotakeOff();
+                    robot.pushSuckers(false);
                 break;
                 //button 23 prints the sensor locatations of sensored motors
                 case 23:
@@ -213,6 +217,17 @@ public class TSBAdapter extends ButtonHandler{
                         }
                     break;
                     case 22:
+                        robot.elevatorOff();
+                        robot.armOff();
+                        robot.liftOff();
+                        robot.fireHatch(false);
+                        robot.iotakeOff();
+                        robot.pushSuckers(false);
+                    break;
+                    case 23:
+                        robot.printSensorPositions();
+                    break;
+                    case 24:
                         robot.setTuningValue("eTop",44.83285);
                         robot.setTuningValue("eBot",0.0);
                         robot.setTuningValue("eMid",22.6903);
@@ -234,11 +249,12 @@ public class TSBAdapter extends ButtonHandler{
 
                         robot.setTuningValue("eSpdUp",.3);
                         robot.setTuningValue("eSpdDow",.2);
-                        robot.setTuningValue("lSpdUp",.8);
+                        robot.setTuningValue("lSpdUp",.4);
                         robot.setTuningValue("lSpdDow",.8);
                         robot.setTuningValue("eSpdJ",.6);
                         robot.setTuningValue("aSpd",.2);
-                        robot.setTuningValue("aSpdJ",.6);
+                        robot.setTuningValue("aSpdJ",.75);
+                        robot.setTuningValue("iSpd",1);
 
                         robot.setTuningValue("eCurUp",52.0);
                         robot.setTuningValue("eCurDow", 8.0);
@@ -254,7 +270,7 @@ public class TSBAdapter extends ButtonHandler{
                     //button 26 changes what property you are editing (++)
                     case 27:
                         currentPropertyNo++;
-                        if (currentPropertyNo>28){
+                        if (currentPropertyNo>29){
                             currentPropertyNo=0;
                         }
                         currentTuningValue=tuningValues[currentPropertyNo];
@@ -267,7 +283,7 @@ public class TSBAdapter extends ButtonHandler{
                     case 26:
                         currentPropertyNo--;
                         if (currentPropertyNo<0){
-                            currentPropertyNo=28;
+                            currentPropertyNo=29;
                         }
                         currentTuningValue=tuningValues[currentPropertyNo];
                         //System.out.println("Now edititing "+currentTuningValue);
@@ -277,8 +293,8 @@ public class TSBAdapter extends ButtonHandler{
                     break;
                     case 28:
                         if (robot.isEnabled()){
-                            mode=Mode.RobotRecord;
-                            Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'RobotRecord'"));
+                            mode=Mode.RobotResponse;
+                            Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'RobotResponse'"));
                         } else {
                             Robot.eHandler.triggerEvent(new PrintEvent("RobotResponse mode not available while robot is disabled",true));
                         }
@@ -363,11 +379,11 @@ public class TSBAdapter extends ButtonHandler{
                 break;
                 //button 17 initiates intake
                 case 17:
-                    robot.intake();
+                    robot.outtakeLeft();
                 break;
                 //button 18 outakes (shoots)
                 case 18:
-                    robot.outtake();
+                    robot.outtakeRight();
                 break;
                 //button 20 fires a loaded hatch
                 case 20:
@@ -419,10 +435,10 @@ public class TSBAdapter extends ButtonHandler{
                 elevatorControlMode=ControlMode.Joystick;
             break;
             case 4:
-                robot.liftOff();
+                robot.liftHoldPos();
             break;
             case 9:
-                robot.liftOff();
+                robot.liftHoldPos();
             break;
             case 11:
                 robot.armOff();
