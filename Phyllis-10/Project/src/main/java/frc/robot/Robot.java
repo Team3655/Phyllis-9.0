@@ -242,7 +242,7 @@ public class Robot extends TimedRobot {
   }
   public void setVaccum(boolean b){
     if (b){
-      vaccum.set(ControlMode.PercentOutput, .3);
+      vaccum.set(ControlMode.PercentOutput, .5);
     } else {
       vaccum.set(ControlMode.PercentOutput,0);
     }
@@ -302,7 +302,7 @@ public class Robot extends TimedRobot {
     if (!on){
       vaccum.set(ControlMode.PercentOutput,0);
     } else {
-      vaccum.set(ControlMode.PercentOutput,1);
+      vaccum.set(ControlMode.PercentOutput,.5);
     }
     //solenoidActivationTime=System.currentTimeMillis();
   }
@@ -342,6 +342,10 @@ public class Robot extends TimedRobot {
    */
   public void elevatorDown(double demand){
     elevator.down(demand);
+  }
+
+  public void elevatorHatch(){
+    elevator.moveToPos(tuningValues.get("eHat"), tuningValues.get("eSpdDow"), tuningValues.get("eSpdUp"));
   }
 
   public void elevatorHoldPos(){
@@ -482,7 +486,6 @@ public class Robot extends TimedRobot {
 
   public void armHatch(){
     arm.moveToPos(tuningValues.get("aHat"),tuningValues.get("aSpd"));
-    elevator.moveToPos(tuningValues.get("eHat"), tuningValues.get("eSpdDow"), tuningValues.get("eSpdUp"));
   }
 
 
@@ -516,6 +519,13 @@ public class Robot extends TimedRobot {
    */
   public void outtakeRight(){
     iotake.outtakeRight(.5);
+  }
+
+  /**Activates soft outtake
+   * 
+   */
+  public void outtakeSoft(){
+    iotake.outtake(.3);
   }
 
   /**Initiates intake

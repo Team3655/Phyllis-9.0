@@ -1,6 +1,7 @@
 package frc.robot.buttons;
 
 
+
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import frc.robot.Robot;
@@ -41,124 +42,151 @@ public class TSBAdapter extends ButtonHandler{
     public void buttonPressed(int no){
         if (mode==Mode.RobotResponse&&robot.isEnabled()){
             switch (no){
-                
-                //button 1 moves elevator up
-                case 1:
-                    robot.elevatorUp();
-                    elevatorControlMode=ControlMode.PID;
-                break;
-                //button 6 moves elevator down
-                case 6:
-                    robot.elevatorDown();
-                    elevatorControlMode=ControlMode.PID;
-                break;
-                //button 2 moves elevator to bottom
-                case 2:
-                    robot.elevatorBottom();
-                    elevatorControlMode=ControlMode.PID;
-                break;
-                //button 3 moves elevator to middle
-                case 3:
-                    robot.elevatorMid();
-                    elevatorControlMode=ControlMode.PID;
-                break;
-                //button 7 moves elevator to top
-                case 7:
-                    robot.elevatorTop();
-                    elevatorControlMode=ControlMode.PID;
-                break;
-                //button 8 moves elevator into cargo position
-                case 8:
-                    robot.elevatorCargo();
-                    elevatorControlMode=ControlMode.PID;
-                break;
-                //button 4 moves lift up
-                case 4:
-                    robot.liftUp();
-                break;
-                //button 9 moves lift down
-                case 9:
-                    robot.liftDown();
-                break;
-                //button 5 turns lift off//puts lift in raised position
-                case 5:
-                    robot.liftOff();    
+                /*
 
-                    /*robot.pushSuckers(true);
-                    robot.setVaccum(true);*/
+                **Wrong right now will make program to automate later too tedious to do manually with constant changes
+                //<<Table of Contents>>\\
 
-                    //robot.liftRaise();
-                break;
-                //button 10 puts lift in lowered position
-                case 10:
-                    //robot.liftLower();
-                break;
-                //button 11 moves arm up
-                case 11:
-                    robot.armUp();
-                break;
-                //button 12 moves arm down
-                case 12:
-                    robot.armDown();
-                break;
-                //button 13 puts arm in ball position
-                case 13:
-                    robot.armBall();
-                    armControlMode=ControlMode.PID;
-                break;
-                //button 15 puts arm in hatch position
-                case 15:
-                    robot.armHatch();
-                    robot.pushSuckers(true);
-                    robot.setVaccum(true);
-                    armControlMode=ControlMode.PID;
-                break;
-                //button 14 puts arm at deck height
-                case 14:
-                    robot.armCargo();
-                    armControlMode=ControlMode.PID;
-                break;
-                //button 16 puts arm at sit height
-                case 16:
-                    robot.armSit();
-                    armControlMode=ControlMode.PID;
-                break;
-                //button 17 initiates intake
+                B# - FUNCTION ......... <|LN#|>
+
+
+                1  - elevator top ..... <| 75|>
+                2  - elevator mid ..... <| 80|>
+                3  - elevator bot/hat . <| 85|>
+                4  - lift up .......... <|100|>
+                5  - lift off ......... <|108|>
+                6  - cargoship position <|90|>
+                15 - hatch protocol ... <|0|>
+                16 - cargo position ... <|0|>
+                17 - left eject ....... <|0|> **soft eject
+                18 - right eject ...... <|0|> **soft eject
+                20 - hatch eject ...... <|0|>
+                21 - compressor toggle  <|0|>
+                22 - everything off ... <|0|>
+                23 - print motor pos .. <|0|>
+                24 - debug info ....... <|0|>
+
+                <|70|> (if this <|#|> changes change index #s accordingly)*/
+
+
+                //<<ELEVATOR BUTTONS>>\\
+
+                    //button 1 moves elevator to top position <|75|>
+                    case 1:
+                        robot.elevatorTop();
+                        elevatorControlMode=ControlMode.PID;
+                    break;
+                    //button 2 moves elevator to mid position <|80|>
+                    case 2:
+                        robot.elevatorMid();
+                        elevatorControlMode=ControlMode.PID;
+                    break;
+                    //button 3 moves elevator to hatch/bottom position <|85|>
+                    case 3:
+                        robot.elevatorHatch();
+                        elevatorControlMode=ControlMode.PID;
+                    break;
+
+
+                //LIFT BUTTONS
+                    //button 4 moves lift up <|100|>
+                    case 4:
+                        robot.liftUp();
+                    break;
+                    //button 9 moves lift down <|104|>
+                    case 9:
+                        robot.liftDown();
+                    break;
+                    //button 5 turns lift off (coast mode) <|108|>
+                    case 5:
+                        robot.liftOff();    
+                    break;
+
+
+                //<<ARM BUTTONS>>\\
+
+                    //button 11 moves arm up <|116|>
+                    case 11:
+                        robot.armUp();
+                    break;
+                    //button 12 moves arm down **may become arm hatch <|120|>
+                    case 12:
+                        robot.armDown();
+                    break;
+                    //button 16 puts arm in ball pickup position <|124|>
+                    case 16:
+                        robot.armBall();
+                        armControlMode=ControlMode.PID;
+                    break;
+
+
+                //<<OUTTAKE>>\\
+
+                //button 17 soft outtake <|133|>
                 case 17:
-                    robot.outtakeLeft();
+                    robot.outtakeSoft();
                 break;
-                //button 18 outakes (shoots)
+                //button 18 soft outtake <|137|>
                 case 18:
-                    robot.outtakeRight();
+                    robot.outtakeSoft();
                 break;
-                //button 20 fires a loaded hatch
-                case 20:
-                    Robot.eHandler.triggerEvent(new DiskPushEvent(100));
-                break;
-                //button 21 toggles the compressor
+                
+                
+                //<<COMPRESSOR BUTTON>>\\
+
+                //button 21 toggles the compressor <|145|>
                 case 21:
                     robot.toggleCompressor();
                 break;
-                //button 22 turns off elevator, mostly won't be used but we're gonna keep it in case of emergency (failure to disable elevator upon voltage spike or critical elevator damage)
-                case 22:
-                    robot.elevatorOff();
-                    robot.armOff();
-                    robot.liftOff();
-                    robot.fireHatch(false);
-                    robot.iotakeOff();
-                    robot.pushSuckers(false);
-                break;
-                //button 23 prints the sensor locatations of sensored motors
-                case 23:
-                    robot.printSensorPositions();
-                break;
-                case 24:
-                    robot.debug();
-                break;
-                case 28:
-                    mode=Mode.Tune;
-                    Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'Tune'"));
-                break;
+                
+                
+                //<<MIXED SYSTEMS BUTTONS>>\\
+
+                    //button 15 puts arm in hatch position <|153|>
+                    case 15:
+                        robot.armHatch();
+                        robot.elevatorHatch();
+                        robot.pushSuckers(true);
+                        robot.setVaccum(true);
+                        armControlMode=ControlMode.PID;
+                    break;
+                    //button 6 moves elevator and arm into cargo position <|90|>
+                    case 6:
+                        robot.elevatorCargo();
+                        robot.armCargo();
+                        armControlMode=ControlMode.PID;
+                        elevatorControlMode=ControlMode.PID;
+                    break;
+                    //button 20 fires a loaded hatch <|161|>
+                    case 20:
+                        Robot.eHandler.triggerEvent(new DiskPushEvent(100));
+                    break;
+                    //button 22 turns off all the motors and stuff <|165|>
+                    case 22:
+                        robot.elevatorOff();
+                        robot.armOff();
+                        robot.liftOff();
+                        robot.fireHatch(false);
+                        robot.iotakeOff();
+                        robot.pushSuckers(false);
+                    break;
+
+
+                //<<DEBUG/TUNING BUTTONS>>\\
+
+                    //button 23 prints the sensor locatations of sensored motors <|178|>
+                    case 23:
+                        robot.printSensorPositions();
+                    break;
+                    //button 24 prints debug info <|182|>
+                    case 24:
+                        robot.debug();
+                    break;
+                    //button 28 switches to tuning mode <|186|>
+                    case 28:
+                        mode=Mode.Tune;
+                        Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'Tune'"));
+                    break;
             }
         } else if (mode==Mode.Tune) {
             if (no<10){
