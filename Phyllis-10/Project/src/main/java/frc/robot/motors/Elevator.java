@@ -28,11 +28,17 @@ public class Elevator extends CANSparkMax {
         state=State.off;
         getEncoder().setPosition(0);
         p=getPIDController();
-        p.setP(1);
-        p.setD(0);
-        p.setI(0);
-        p.setFF(0);
-        p.setOutputRange(.75, .75);
+        p.setP(1,0);
+        p.setD(0,0);
+        p.setI(0,0);
+        p.setFF(0,0);
+        p.setOutputRange(-.75, .75);
+        p.setP(1,1);
+        p.setD(0,1);
+        p.setI(0,1);
+        p.setFF(0,1);
+        p.setOutputRange(-.75, .75,1);
+        p.setOutputRange(-.75, .75,0);
     }
     /**Constructs a new elevator with an id of <code>id</code> and a default demand percent of .75
      * 
@@ -156,21 +162,56 @@ public class Elevator extends CANSparkMax {
         targetPosition=pos;
         p.setOutputRange(-1*Math.abs(defaultDemand), Math.abs(defaultDemand));
         state=State.activePID;
-        p.setReference(pos,ControlType.kPosition);
+        p.setReference(pos,ControlType.kPosition,1);
     }
     public void moveToPos(double pos,double demand){
         set(0);
         targetPosition=pos;
         p.setOutputRange(-1*Math.abs(demand), Math.abs(demand));
         state=State.activePID;
-        p.setReference(pos,ControlType.kPosition);
+        p.setReference(pos,ControlType.kPosition,1);
     }
     public void moveToPos(double pos,double demandDown,double demandUp){
         set(0);
         targetPosition=pos;
         p.setOutputRange(-1*Math.abs(demandDown), Math.abs(demandUp));
         state=State.activePID;
-        p.setReference(pos,ControlType.kPosition);
+        p.setReference(pos,ControlType.kPosition,1);
+    }
+    public void moveToPos(double pos,double demandDown,double demandUp,int PIDSlot){
+        set(0);
+        targetPosition=pos;
+        p.setOutputRange(-1*Math.abs(demandDown), Math.abs(demandUp));
+        state=State.activePID;
+        p.setReference(pos,ControlType.kPosition,PIDSlot);
+    }
+    public void smartPos(double pos){
+        set(0);
+        targetPosition=pos;
+        p.setOutputRange(-1*Math.abs(Robot.getInstance().getTuningValue("eSpdDow")), Math.abs(Robot.getInstance().getTuningValue("eSpdUp")));
+        state=State.activePID;
+        p.setSmartMotionAllowedClosedLoopError(Robot.getInstance().getTuningValue("eErr"), 0);
+        p.setSmartMotionMaxAccel(Robot.getInstance().getTuningValue("eSpdRPM"), 0);
+        p.setSmartMotionMaxVelocity(Robot.getInstance().getTuningValue("eAclRPMS"), 0);
+        p.setReference(pos,ControlType.kSmartMotion,0);
+    }
+    public void smartPos(double pos, double maxAccel,double maxVelocity){
+        set(0);
+        targetPosition=pos;
+        p.setOutputRange(-1*Math.abs(Robot.getInstance().getTuningValue("eSpdDow")), Math.abs(Robot.getInstance().getTuningValue("eSpdUp")));
+        state=State.activePID;
+        p.setSmartMotionMaxAccel(Robot.getInstance().getTuningValue("eSpdRPM"), 0);
+        p.setSmartMotionMaxVelocity(Robot.getInstance().getTuningValue("eAclRPMS"), 0);
+        p.setReference(pos,ControlType.kSmartMotion,0);
+    }
+    public void smartPos(double pos, double maxAccel,double maxVelocity,double demandUp,double demandDown){
+        set(0);
+        targetPosition=pos;
+        p.setOutputRange(-1*Math.abs(demandDown), Math.abs(demandUp));
+        state=State.activePID;
+        p.setSmartMotionMaxAccel(maxAccel, 0);
+        p.setSmartMotionMaxVelocity(maxVelocity, 0);
+        p.setReference(pos,ControlType.kSmartMotion,0);
     }
     public void printSensorPosition(){
         Robot.eHandler.triggerEvent(new PrintEvent("Sensor Position: "+getEncoder().getPosition()));

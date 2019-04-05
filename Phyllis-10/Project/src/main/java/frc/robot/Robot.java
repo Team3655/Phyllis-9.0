@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.buttons.*;
+import frc.robot.event.Event;
 import frc.robot.event.EventHandler;
 import frc.robot.event.customevents.PrintEvent;
 import frc.robot.motors.Arm;
@@ -108,9 +109,9 @@ public class Robot extends TimedRobot {
     tuningValues.put("eBot",0.0);
     tuningValues.put("eMid",22.6903);
     tuningValues.put("eCar",27.47599);
-    tuningValues.put("eHat",6.7857);
+    tuningValues.put("eHat",0.0);
     tuningValues.put("aCar",-25.30935);
-    tuningValues.put("aHat",-6.9285);
+    tuningValues.put("aHat",-26.07);
     tuningValues.put("aBal",-27.85693);
     tuningValues.put("aSit",.1);
     tuningValues.put("aDec",.1);
@@ -122,29 +123,50 @@ public class Robot extends TimedRobot {
     tuningValues.put("ePIDORUp",.0);
     tuningValues.put("ePIDORDow",.0);
 
-
+    tuningValues.put("eSpdRPM",922.99);
+    tuningValues.put("eAclRPMS",922.99);
     tuningValues.put("eSpdUp",.3);
     tuningValues.put("eSpdDow",.2);
-    tuningValues.put("lSpdUp",.8);
+    tuningValues.put("lSpdRPM",645.0);
+    tuningValues.put("lAclRPMS",645.0);
+    tuningValues.put("lSpdUp",.4);
     tuningValues.put("lSpdDow",.8);
     tuningValues.put("eSpdJ",.6);
     tuningValues.put("aSpd",.2);
-    tuningValues.put("aSpdJ",.6);
+    tuningValues.put("aSpdJ",.75);
     tuningValues.put("iSpd",.8);
 
     tuningValues.put("eCurUp",52.0);
     tuningValues.put("eCurDow", 8.0);
-    tuningValues.put("eCurPID", 60.0);
+    tuningValues.put("eCurPID", 100.0);
     tuningValues.put("eCurJoy", 60.0);
     tuningValues.put("lCur", 80.0);
     tuningValues.put("aCur", 120.0);
+
+    tuningValues.put("eErr",.1);
+    tuningValues.put("eP", elevator.getPIDController().getP());
+    tuningValues.put("eI",elevator.getPIDController().getI());
+    tuningValues.put("eD",elevator.getPIDController().getD());
+    tuningValues.put("eFF", elevator.getPIDController().getFF());
     climbing=false;
-    diskPush=new Solenoid(0);
+    diskPush=new Solenoid(0){
+      /**Inverts this solenoid. Fix for other robot
+       * 
+       * TEMPORARY FIX
+       * 
+       */
+      @Override
+      public void set(boolean on){
+        super.set(!on);
+      }
+    };
+
     diskBlowoff=new Solenoid(1);
     compressor=new Compressor(0); //DOUBLE CHECK IDS
   }
   @Override
   public void teleopInit() {
+    
     if (!(tsbAdapter==null)){
       tsbAdapter.setMode(TSBAdapter.Mode.RobotResponse);
     }
@@ -158,8 +180,15 @@ public class Robot extends TimedRobot {
     if (!(tsbAdapter==null)){
       tsbAdapter.setMode(TSBAdapter.Mode.RobotResponse);
     }
-    pushSuckers(true);
     setVaccum(true);
+    elevatorHatch();
+    pushSuckers(true);
+    eHandler.triggerEvent(new Event(new Runnable(){
+      @Override
+      public void run(){
+        armHatch();
+      }
+    },200));
   }
   @Override
   public void autonomousPeriodic() {
@@ -173,16 +202,31 @@ public class Robot extends TimedRobot {
     } else {
       robot.arcadeDrive(-leftStick.getY()*.75, 0);
     }
-    //update button inputs
-    /*if (!(jsbAdapter.equals(null)&&tsbAdapter.equals(null))){
-      jsbAdapter.update();
-      tsbAdapter.update();
-    }*/
-    if (rearLift.getMotorTemperature()>100){
+    if (rearLift.getMotorTemperature()>120){
       eHandler.triggerEvent(new PrintEvent("WARNING: Rear lift high temperature of "+rearLift.getMotorTemperature()));
-    } else if (rearLift.getMotorTemperature()>200){
+    }
+    if (rearLift.getMotorTemperature()>150){
       rearLift.off();
       eHandler.triggerEvent(new PrintEvent("Rearlift disabled from high temperature of "+rearLift.getMotorTemperature(),true));
+    }
+    if (elevator.getMotorTemperature()>110){
+      eHandler.triggerEvent(new PrintEvent("WARNING: Elevator Right high temperature of "+elevator.getMotorTemperature()));
+    }
+    if (elevator.getMotorTemperature()>120){
+      elevator.off();
+      eHandler.triggerEvent(new PrintEvent("Elevator Right disabled from high temperature of "+rearLift.getMotorTemperature(),true));
+    }
+    if (elevatorF.getMotorTemperature()>110){
+      eHandler.triggerEvent(new PrintEvent("WARNING: Elevator Left high temperature of "+elevatorF.getMotorTemperature()));
+    }
+    if (elevatorF.getMotorTemperature()>120){
+      elevator.off();
+      elevatorF.set(0);
+      if (elevatorF.get()>0){
+        elevatorF.disable();
+        eHandler.triggerEvent(new PrintEvent("Elevator Right ACTUALLY DISABLED. Power cycle necessary for further use."));
+      }
+      eHandler.triggerEvent(new PrintEvent("Elevator Left disabled from high temperature of "+elevatorF.getMotorTemperature(),true));
     }
     double elevatorCurrent=elevator.getOutputCurrent();
     //stop elevator at current spike
@@ -345,21 +389,21 @@ public class Robot extends TimedRobot {
   }
 
   public void elevatorHatch(){
-    elevator.moveToPos(tuningValues.get("eHat"), tuningValues.get("eSpdDow"), tuningValues.get("eSpdUp"));
+    elevator.moveToPos(tuningValues.get("eHat"), tuningValues.get("eSpdDow"), tuningValues.get("eSpdUp"),1);
   }
 
   public void elevatorHoldPos(){
     if (elevator.getEncoder().getPosition()<.8){
       return;
     }
-    elevator.moveToPos(elevator.getEncoder().getPosition());
+    elevator.moveToPos(elevator.getEncoder().getPosition(),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"),0);
   }
 
   public void elevatorHoldPosOR(){
     if(elevator.getOutputCurrent()>0){
-      elevator.moveToPos(elevator.getEncoder().getPosition()+tuningValues.get("ePIDORUp"));
+      elevator.moveToPos(elevator.getEncoder().getPosition()+tuningValues.get("ePIDORUp"),1);
     } else {
-      elevator.moveToPos(elevator.getEncoder().getPosition()-tuningValues.get("ePIDORDow"));      
+      elevator.moveToPos(elevator.getEncoder().getPosition()-tuningValues.get("ePIDORDow"),1);      
     }
   }
   
@@ -369,11 +413,11 @@ public class Robot extends TimedRobot {
 
   //Not fuctional!
   public void elevatorTop(){
-    elevator.moveToPos(tuningValues.get("eTop"),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"));
+    elevator.moveToPos(tuningValues.get("eTop"),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"),1);
   }
 
   public void elevatorBottom(){
-    elevator.moveToPos(tuningValues.get("eBot"),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"));
+    elevator.moveToPos(tuningValues.get("eBot"),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"),1);
   }
   
   /**Moves elevator to middle possition
@@ -382,7 +426,11 @@ public class Robot extends TimedRobot {
    * 
    */
   public void elevatorMid(){
-    elevator.moveToPos(tuningValues.get("eMid"),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"));
+    elevator.moveToPos(tuningValues.get("eMid"),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"),1);
+  }
+
+  public void elevatorSmartMid(){
+    elevator.smartPos(tuningValues.get("eMid"));
   }
   
   /**Moves elevator to cargo position
@@ -399,6 +447,13 @@ public class Robot extends TimedRobot {
    */
   public void elevatorOff(){
     elevator.off();
+  }
+
+  public void elevatorPID(double P,double I,double D,double FF){
+    elevator.getPIDController().setP(P,1);
+    elevator.getPIDController().setI(I,1);
+    elevator.getPIDController().setD(D,1);
+    elevator.getPIDController().setFF(FF,1);
   }
 
 

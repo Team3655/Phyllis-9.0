@@ -21,7 +21,7 @@ public class TSBAdapter extends ButtonHandler{
     private ControlMode elevatorControlMode;
     private ControlMode armControlMode;
     private Mode mode;
-    private String[] tuningValues={"eTop","eBot","eMid","eCar","eHat","aCar","aHat","aBal","aSit","aDec","lTop","lBot","aPIDOR","lPIDOR","ePIDORUp","ePIDORDow","eSpdUp","eSpdDow","lSpdUp","lSpdDow","eSpdJ","aSpd","aSpdJ","iSpd","eCurUp","eCurDow","eCurPID","eCurJoy","lCur","aCur"};
+    private String[] tuningValues={"eTop","eBot","eMid","eCar","eHat","aCar","aHat","aBal","aSit","aDec","lTop","lBot","aPIDOR","lPIDOR","ePIDORUp","ePIDORDow","eSpdRPM","eAclRPMS","eSpdUp","eSpdDow","lSpdRPM","lAclRPMS","lSpdUp","lSpdDow","eSpdJ","aSpd","aSpdJ","iSpd","eCurUp","eCurDow","eCurPID","eCurJoy","lCur","aCur","eErr","eP","eI","eD","eFF"};
     private int currentPropertyNo;
     private String currentTuningValue;
     private String inputCache;
@@ -36,7 +36,7 @@ public class TSBAdapter extends ButtonHandler{
         currentTuningValue=tuningValues[currentPropertyNo];
         inputCache="";
         elevatorControlMode=ControlMode.Joystick;
-        armControlMode=ControlMode.Joystick;
+        armControlMode=ControlMode.PID;
         setArmJoystick(getJoystick());
     }
     public void buttonPressed(int no){
@@ -86,7 +86,9 @@ public class TSBAdapter extends ButtonHandler{
                         robot.elevatorHatch();
                         elevatorControlMode=ControlMode.PID;
                     break;
-
+                    case 8:
+                        robot.elevatorSmartMid();
+                    break;
 
                 //LIFT BUTTONS
                     //button 4 moves lift up <|100|>
@@ -237,6 +239,7 @@ public class TSBAdapter extends ButtonHandler{
                             robot.setTuningValue(currentTuningValue, Double.parseDouble(inputCache));
                             Robot.eHandler.triggerEvent(new PrintEvent(currentTuningValue+" set to "+inputCache));
                             inputCache="";
+                            robot.elevatorPID(robot.getTuningValue("eP"), robot.getTuningValue("eI"), robot.getTuningValue("eD"),robot.getTuningValue("eFF"));
                         } catch (NumberFormatException e){
                             //robot.setProp(currentTuningValue, 0);
                             Robot.eHandler.triggerEvent(new PrintEvent("User did not enter a number"));
@@ -258,7 +261,7 @@ public class TSBAdapter extends ButtonHandler{
                     case 24:
                         robot.setTuningValue("eTop",44.83285);
                         robot.setTuningValue("eBot",0.0);
-                        robot.setTuningValue("eMid",22.6903);
+                        robot.setTuningValue("eMid",34.69);
                         robot.setTuningValue("eCar",27.47599);
                         robot.setTuningValue("eHat",3.88);
                         robot.setTuningValue("aCar",-25.30935);
@@ -274,9 +277,12 @@ public class TSBAdapter extends ButtonHandler{
                         robot.setTuningValue("ePIDORUp",.0);
                         robot.setTuningValue("ePIDORDow",.0);
 
-
+                        robot.setTuningValue("eSpdRPM", 922.99);
+                        robot.setTuningValue("eAclRPMS", 922.99);
                         robot.setTuningValue("eSpdUp",.3);
                         robot.setTuningValue("eSpdDow",.2);
+                        robot.setTuningValue("lSpdRPM", 645);
+                        robot.setTuningValue("lAclRPMS", 645);
                         robot.setTuningValue("lSpdUp",.4);
                         robot.setTuningValue("lSpdDow",.8);
                         robot.setTuningValue("eSpdJ",.6);
@@ -286,10 +292,17 @@ public class TSBAdapter extends ButtonHandler{
 
                         robot.setTuningValue("eCurUp",52.0);
                         robot.setTuningValue("eCurDow", 8.0);
-                        robot.setTuningValue("eCurPID", 60.0);
+                        robot.setTuningValue("eCurPID", 100.0);
                         robot.setTuningValue("eCurJoy", 60.0);
                         robot.setTuningValue("lCur", 80.0);
                         robot.setTuningValue("aCur", 120.0);
+
+                        //robot.setTuningValue("eErr", 0);
+                        robot.setTuningValue("eP", 1);
+                        robot.setTuningValue("eI", 0);
+                        robot.setTuningValue("eD", 0);
+                        robot.setTuningValue("eFF", 0);
+                        robot.elevatorPID(robot.getTuningValue("eP"), robot.getTuningValue("eI"), robot.getTuningValue("eD"),robot.getTuningValue("eFF"));
                         Robot.eHandler.triggerEvent(new PrintEvent("TUNING VALUES SET TO TEST ROBOT"));
                     break;
                     case 25:
@@ -298,7 +311,7 @@ public class TSBAdapter extends ButtonHandler{
                     //button 26 changes what property you are editing (++)
                     case 27:
                         currentPropertyNo++;
-                        if (currentPropertyNo>29){
+                        if (currentPropertyNo>38){
                             currentPropertyNo=0;
                         }
                         currentTuningValue=tuningValues[currentPropertyNo];
@@ -311,7 +324,7 @@ public class TSBAdapter extends ButtonHandler{
                     case 26:
                         currentPropertyNo--;
                         if (currentPropertyNo<0){
-                            currentPropertyNo=29;
+                            currentPropertyNo=38;
                         }
                         currentTuningValue=tuningValues[currentPropertyNo];
                         //System.out.println("Now edititing "+currentTuningValue);
@@ -448,43 +461,44 @@ public class TSBAdapter extends ButtonHandler{
         }
     }
     public void buttonReleased(int no){
-        switch (no){
-            /*case 20:
-            robot.fireHatch(false);
-            break;*/
-            //button 1 moves elevator up
-            case 1:
-                robot.elevatorHoldPosOR();
-                elevatorControlMode=ControlMode.Joystick;
-            break;
-            //button 6 moves elevator down
-            case 6:
-                robot.elevatorHoldPosOR();
-                elevatorControlMode=ControlMode.Joystick;
-            break;
-            case 4:
-                robot.liftHoldPos();
-            break;
-            case 9:
-                robot.liftHoldPos();
-            break;
-            case 11:
-                robot.armOff();
-                Robot.eHandler.triggerEvent(new ArmHoldPosEvent(120));
-                armControlMode=ControlMode.PID;
-            break;
-            case 12:
-                robot.armOff();
-                Robot.eHandler.triggerEvent(new ArmHoldPosEvent(120));
-                armControlMode=ControlMode.PID;
-            break;
-            case 17:
-                robot.iotakeOff();
-            break;
-            case 18:
-                robot.iotakeOff();
-            break;
-            
+        if (mode==Mode.RobotResponse){
+            switch (no){
+                /*case 20:
+                robot.fireHatch(false);
+                break;*/
+                //button 1 moves elevator up
+                case 1:
+                    robot.elevatorHoldPosOR();
+                    elevatorControlMode=ControlMode.Joystick;
+                break;
+                //button 6 moves elevator down
+                case 6:
+                    robot.elevatorHoldPosOR();
+                    elevatorControlMode=ControlMode.Joystick;
+                break;
+                case 4:
+                    robot.liftHoldPos();
+                break;
+                case 9:
+                    robot.liftHoldPos();
+                break;
+                case 11:
+                    robot.armOff();
+                    Robot.eHandler.triggerEvent(new ArmHoldPosEvent(120));
+                    armControlMode=ControlMode.PID;
+                break;
+                case 12:
+                    robot.armOff();
+                    Robot.eHandler.triggerEvent(new ArmHoldPosEvent(120));
+                    armControlMode=ControlMode.PID;
+                break;
+                case 17:
+                    robot.iotakeOff();
+                break;
+                case 18:
+                    robot.iotakeOff();
+                break;
+            }
         }
     }
     public void buttonDown(int no){
