@@ -208,8 +208,8 @@ public class Robot extends TimedRobot {
   private void periodic(){
     //driving arcade
     if (!climbing){
-      robot.arcadeDrive(rightStick.getY()*-.75,xStick.getX()*.75);
-      //robot.arcadeDrive(xStick.getX()*-.75,rightStick.getY()*.75); 
+      //robot.arcadeDrive(rightStick.getY()*-.75,xStick.getX()*.75);
+      robot.arcadeDrive(xStick.getX()*-.75,rightStick.getY()*.75); 
     } else {
       robot.arcadeDrive(-leftStick.getY()*.75, 0);
     }

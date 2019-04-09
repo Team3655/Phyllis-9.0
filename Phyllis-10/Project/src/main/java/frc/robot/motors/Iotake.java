@@ -21,7 +21,8 @@ public class Iotake {
         right=new TalonSRX(32);
         left.setNeutralMode(NeutralMode.Brake);
         right.setNeutralMode(NeutralMode.Brake);
-        right.setInverted(true);
+        //right.setInverted(true);//actual robot
+        left.setInverted(true);//practice robot
         defaultDemand = .75;
         state = State.off;
     }
@@ -65,8 +66,6 @@ public class Iotake {
         right.setNeutralMode(NeutralMode.Brake);
         this.defaultDemand=defaultDemand;
         state = State.off;
-        left.setInverted(true);
-        right.setInverted(true);
     }
     /**Sets default demand of motor
      * 

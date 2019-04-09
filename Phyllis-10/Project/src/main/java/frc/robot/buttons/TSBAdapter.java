@@ -115,6 +115,8 @@ public class TSBAdapter extends ButtonHandler{
                     //button 16 puts arm in ball pickup position <|124|>
                     case 16:
                         robot.armBall();
+                        robot.pushSuckers(false);
+                        robot.setVaccum(false);
                         armControlMode=ControlMode.PID;
                     break;
 
@@ -264,11 +266,11 @@ public class TSBAdapter extends ButtonHandler{
                         robot.setTuningValue("eMid",34.69);
                         robot.setTuningValue("eCar",27.47599);
                         robot.setTuningValue("eHat",3.88);
-                        robot.setTuningValue("aCar",25.30935);
-                        robot.setTuningValue("aHat",8.88);
-                        robot.setTuningValue("aBal",27.85693);
-                        robot.setTuningValue("aSit",.1);
-                        robot.setTuningValue("aDec",.1);
+                        robot.setTuningValue("aCar",-25.30935);
+                        robot.setTuningValue("aHat",-8.88);
+                        robot.setTuningValue("aBal",-27.66);
+                        robot.setTuningValue("aSit",-.1);
+                        robot.setTuningValue("aDec",-.1);
                         robot.setTuningValue("lTop",0.0);
                         robot.setTuningValue("lBot",-.5);
 
