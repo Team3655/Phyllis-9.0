@@ -22,11 +22,13 @@ public abstract class ButtonHandler extends Thread{
      * @param buttonNo Number of buttons on button interface
      */
     public ButtonHandler(GenericHID buttonInterface,int buttonNo){
+        this.setName(this.getClass().toString());
         this.buttonInterface=buttonInterface;
         this.buttonNo=buttonNo;
         enabled=true;
         start();
     }
+
     @Override
     public void run(){
         while (enabled){

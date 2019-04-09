@@ -70,7 +70,7 @@ public class TSBAdapter extends ButtonHandler{
 
 
                 //<<ELEVATOR BUTTONS>>\\
-
+                    /*
                     //button 1 moves elevator to top position <|75|>
                     case 1:
                         robot.elevatorTop();
@@ -85,19 +85,16 @@ public class TSBAdapter extends ButtonHandler{
                     case 3:
                         robot.elevatorHatch();
                         elevatorControlMode=ControlMode.PID;
-                    break;
-                    case 8:
-                        robot.elevatorSmartMid();
-                    break;
+                    break;*/
 
                 //LIFT BUTTONS
                     //button 4 moves lift up <|100|>
                     case 4:
-                        robot.liftUp();
+                        robot.liftRaise();
                     break;
                     //button 9 moves lift down <|104|>
                     case 9:
-                        robot.liftDown();
+                        robot.liftLower();
                     break;
                     //button 5 turns lift off (coast mode) <|108|>
                     case 5:
@@ -125,13 +122,13 @@ public class TSBAdapter extends ButtonHandler{
                 //<<OUTTAKE>>\\
 
                 //button 17 soft outtake <|133|>
-                case 17:
+                /*case 17: //not strong enough for anything
                     robot.outtakeSoft();
                 break;
                 //button 18 soft outtake <|137|>
                 case 18:
                     robot.outtakeSoft();
-                break;
+                break;*/
                 
                 
                 //<<COMPRESSOR BUTTON>>\\
@@ -187,6 +184,9 @@ public class TSBAdapter extends ButtonHandler{
                     //button 28 switches to tuning mode <|186|>
                     case 28:
                         mode=Mode.Tune;
+                        Robot.getInstance().red.set(true);
+                        Robot.getInstance().green.set(true);
+                        Robot.getInstance().blue.set(false);
                         Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'Tune'"));
                     break;
             }
@@ -264,9 +264,9 @@ public class TSBAdapter extends ButtonHandler{
                         robot.setTuningValue("eMid",34.69);
                         robot.setTuningValue("eCar",27.47599);
                         robot.setTuningValue("eHat",3.88);
-                        robot.setTuningValue("aCar",-25.30935);
-                        robot.setTuningValue("aHat",-8.88);
-                        robot.setTuningValue("aBal",-27.85693);
+                        robot.setTuningValue("aCar",25.30935);
+                        robot.setTuningValue("aHat",8.88);
+                        robot.setTuningValue("aBal",27.85693);
                         robot.setTuningValue("aSit",.1);
                         robot.setTuningValue("aDec",.1);
                         robot.setTuningValue("lTop",0.0);
@@ -316,7 +316,7 @@ public class TSBAdapter extends ButtonHandler{
                         }
                         currentTuningValue=tuningValues[currentPropertyNo];
                         //System.out.println("Now edititing "+currentTuningValue);
-                        if (!robot.eHandler.triggerEvent(new PrintEvent("Now edititing "+currentTuningValue))){
+                        if (!Robot.eHandler.triggerEvent(new PrintEvent("Now edititing "+currentTuningValue))){
                             System.err.println("Print failed to queue");
                         }
                     break;
@@ -335,14 +335,28 @@ public class TSBAdapter extends ButtonHandler{
                     case 28:
                         if (robot.isEnabled()){
                             mode=Mode.RobotResponse;
+                            Robot.getInstance().red.set(false);
+                            Robot.getInstance().green.set(false);
+                            Robot.getInstance().blue.set(false);
                             Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'RobotResponse'"));
                         } else {
+                            Robot.getInstance().red.set(true);
+                            Robot.getInstance().green.set(false);
+                            Robot.getInstance().blue.set(false);
+                            Robot.eHandler.triggerEvent(new Event(new Runnable(){
+                                @Override
+                                public void run(){
+                                    Robot.getInstance().red.set(true);
+                                    Robot.getInstance().green.set(true);
+                                    Robot.getInstance().blue.set(false);
+                                }
+                            },500));
                             Robot.eHandler.triggerEvent(new PrintEvent("RobotResponse mode not available while robot is disabled",true));
                         }
                     break;
                 }
             }
-        } else {
+        }/* else {
             switch (no){
                 //button 1 moves elevator up
                 case 1:
@@ -458,7 +472,7 @@ public class TSBAdapter extends ButtonHandler{
                         }
                 break;
             }
-        }
+        }*/
     }
     public void buttonReleased(int no){
         if (mode==Mode.RobotResponse){
@@ -477,10 +491,14 @@ public class TSBAdapter extends ButtonHandler{
                     elevatorControlMode=ControlMode.Joystick;
                 break;
                 case 4:
-                    robot.liftHoldPos();
+                    robot.liftOff();
+                    Robot.eHandler.triggerEvent(robot::liftHoldPos, 120); //brushless motor only
+                    //robot.liftOff(); //brushed motor
                 break;
                 case 9:
-                    robot.liftHoldPos();
+                    robot.liftOff();
+                    Robot.eHandler.triggerEvent(robot::liftHoldPos, 120); //brushless motor only
+                    //robot.liftOff(); //brushed motor
                 break;
                 case 11:
                     robot.armOff();

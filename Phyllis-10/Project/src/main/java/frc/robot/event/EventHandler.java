@@ -14,6 +14,7 @@ public class EventHandler extends Thread{
     private List<EventSequence> activeSequences;
     
     public EventHandler(){
+        setName(this.getClass().toString());
         queuedEvents=new CopyOnWriteArrayList<Event>();
         activeSequences=new CopyOnWriteArrayList<EventSequence>();
     }
@@ -41,18 +42,35 @@ public class EventHandler extends Thread{
      * @return wheather the opperation was successful
      */
     public boolean triggerEvent(Event e){
-            queuedEvents.add(e);
-            return true;
+            return queuedEvents.add(e);
     }
 
 /**Adds an event to the event queue
      * 
-     * @param e the event to add to the queue
+     * @param e the event sequence to add to the queue
      * @return wheather the opperation was successful
      */
     public boolean triggerEvent(EventSequence e){
-            activeSequences.add(e);
-            return true;
+            return activeSequences.add(e);
+    }
+
+    /**Adds an event to the event queue
+     * 
+     * @param e the runnable task to add to the queue
+     * @return wheather the opperation was successful
+     */
+    public boolean triggerEvent(Runnable e){
+        return queuedEvents.add(new Event(e));
+    }
+
+    /**Adds an event to the event queue
+     * 
+     * @param e the runnable task to add to the queue
+     * @param delay the delay to execute the task
+     * @return wheather the opperation was successful
+     */
+    public boolean triggerEvent(Runnable e,long delay){
+        return queuedEvents.add(new Event(e,delay));
     }
 
     /**Enables thread

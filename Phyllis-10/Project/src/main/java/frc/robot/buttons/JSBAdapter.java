@@ -41,8 +41,7 @@ public class JSBAdapter extends ButtonHandler{
                     robot.setDriveType(Robot.driveType.oneJoystick);
                 }
             break;
-        }
-        System.out.println(no);   
+        }  
     }
     public void buttonReleased(int no){
         switch (no){

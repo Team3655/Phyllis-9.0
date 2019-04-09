@@ -66,6 +66,7 @@ public class Elevator extends CANSparkMax {
         state=State.off;
         getEncoder().setPosition(0);
         p=getPIDController();
+        set(0);
         p.setP(1);
         p.setD(0);
         p.setI(0);

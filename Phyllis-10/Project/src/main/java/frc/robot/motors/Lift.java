@@ -18,8 +18,10 @@ public class Lift extends CANSparkMax{
     private double activationTime=0;
     private double targetPosition;
     private CANPIDController p;
+    private CANSparkMax helper;
     public Lift(){
         super(22,MotorType.kBrushless);
+        this.setIdleMode(IdleMode.kBrake);
         defaultDemand=.75;
         state=State.off;
         getEncoder().setPosition(0);
@@ -29,10 +31,17 @@ public class Lift extends CANSparkMax{
         p.setI(0);
         p.setFF(0);
         p.setOutputRange(.75, .75);
-        CANSparkMax helper=new CANSparkMax(25, MotorType.kBrushless);
+        helper=new CANSparkMax(25, MotorType.kBrushless);
         helper.follow(this);
-    
+        
     }
+
+    @Override
+    public void close(){
+        super.close();
+        helper.close();
+    }
+
     /*public Lift(int id){
         super(id);
         defaultDemand=.75;
@@ -70,6 +79,7 @@ public class Lift extends CANSparkMax{
     /**Moves rear lift up at <code>defaultDemand</code> (.75 at default) percent demand
      * 
      */
+
     /**Sets default demand of motor
      * 
      * @param defaultDemand
@@ -77,13 +87,17 @@ public class Lift extends CANSparkMax{
     public void setDefaultDemand(double defaultDemand){
         this.defaultDemand=defaultDemand;
     }
+
     public void up(){
         if (!(state==State.activeUp)){
             set(Math.abs(defaultDemand));
+            //p.setReference(-.2, ControlType.kVelocity);
             state = State.activeUp;
             activationTime = System.currentTimeMillis();
         }
     }
+
+    @Deprecated
     /**Moves rear lift up
      * Uses percent output for control mode of set function
      * The absolute value of <code>demand</code> is used (rear lift will only move up)
@@ -92,18 +106,23 @@ public class Lift extends CANSparkMax{
     public void up(double demand){
         if (!(state==State.activeUp)){
             set(Math.abs(demand));
+            //p.setReference(-Math.abs(demand), ControlType.kVelocity);
             state = State.activeUp;
             activationTime = System.currentTimeMillis();
         }
     }
+
+    @Deprecated
     /**Moves rear lift down at <code>defaultDemand</code> (.75 at default) percent demand
      * 
      */
     public void down(){
         if (!(state==State.activeDown)){
             set(-1*Math.abs(defaultDemand));
+            //p.setReference(.01, ControlType.kVelocity);
             state = State.activeDown;
             activationTime = System.currentTimeMillis();
+            //Robot.eHandler.triggerEvent(new PrintEvent("down no args"));
         }
     }
     /**Moves rear lift down
@@ -114,14 +133,18 @@ public class Lift extends CANSparkMax{
     public void down(double demand){
         if (!(state==State.activeDown)){
             set(-1*Math.abs(demand));
+            //p.setReference(Math.abs(demand), ControlType.kVelocity);
             state = State.activeDown;
             activationTime = System.currentTimeMillis();
+            //Robot.eHandler.triggerEvent(new PrintEvent("down args"));
         }
     }
+    
     public void off(){
         set(0);
         state = State.off;
     }
+    
     public void moveToPos(int pos){
         set(0);
         targetPosition=pos;
@@ -129,6 +152,7 @@ public class Lift extends CANSparkMax{
         state=State.activePID;
         p.setReference(pos,ControlType.kPosition);
     }
+    
     public void moveToPos(double pos){
         set(0);
         targetPosition=pos;
@@ -136,6 +160,7 @@ public class Lift extends CANSparkMax{
         state=State.activePID;
         p.setReference(pos,ControlType.kPosition);
     }
+    
     public void moveToPos(double pos,double demand){
         set(0);
         targetPosition=pos;
@@ -143,13 +168,16 @@ public class Lift extends CANSparkMax{
         state=State.activePID;
         p.setReference(pos,ControlType.kPosition);
     }
+    
     public void printSensorPosition(){
         Robot.eHandler.triggerEvent(new PrintEvent("Sensor Position: "+getEncoder().getPosition()));
         if (state==State.activePID) Robot.eHandler.triggerEvent(new PrintEvent("Target Position: "+targetPosition));
     }
+    
     public double getActivationTime(){
         return activationTime;
     }
+
     public State getState(){
         return state;
     }

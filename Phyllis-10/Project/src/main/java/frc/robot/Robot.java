@@ -9,6 +9,8 @@ package frc.robot;
 
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.hal.sim.PCMSim;
+import edu.wpi.first.hal.sim.mockdata.PCMDataJNI;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
@@ -47,6 +49,10 @@ public class Robot extends TimedRobot {
   private TSBAdapter tsbAdapter;
   private Solenoid diskPush;
   private Solenoid diskBlowoff;
+  public Solenoid blue;
+  public Solenoid green;
+  public Solenoid red;
+
   private Compressor compressor;
   private CANSparkMax leftFrontCAN=new CANSparkMax(10,CANSparkMaxLowLevel.MotorType.kBrushless);
   private CANSparkMax leftBackCAN=new CANSparkMax(11,CANSparkMaxLowLevel.MotorType.kBrushless);
@@ -58,11 +64,9 @@ public class Robot extends TimedRobot {
   private Arm arm=new Arm();
   private TalonSRX vaccum=new TalonSRX(24);
   private Lift rearLift=new Lift();
-  private AnalogGyro gyro=new AnalogGyro(0);
+  //private AnalogGyro gyro=new AnalogGyro(0);
   private Boolean climbing;
   private Hashtable<String,Double> tuningValues;
-  private double Y;
-  private final double rampup=.1;
   private static Robot instance;
   //private ExtendableMotor extendableintakeRight = new ExtendableMotor(intakeRight, 0.05, 1);
   
@@ -109,14 +113,14 @@ public class Robot extends TimedRobot {
     tuningValues.put("eBot",0.0);
     tuningValues.put("eMid",22.6903);
     tuningValues.put("eCar",27.47599);
-    tuningValues.put("eHat",0.0);
+    tuningValues.put("eHat",-0.0);
     tuningValues.put("aCar",-25.30935);
-    tuningValues.put("aHat",-26.07);
+    tuningValues.put("aHat",-19.04);
     tuningValues.put("aBal",-27.85693);
     tuningValues.put("aSit",.1);
     tuningValues.put("aDec",.1);
     tuningValues.put("lTop",0.0);
-    tuningValues.put("lBot",-.5);
+    tuningValues.put("lBot",-32.9);
 
     tuningValues.put("aPIDOR",0.0);
     tuningValues.put("lPIDOR",.0);
@@ -129,7 +133,7 @@ public class Robot extends TimedRobot {
     tuningValues.put("eSpdDow",.2);
     tuningValues.put("lSpdRPM",645.0);
     tuningValues.put("lAclRPMS",645.0);
-    tuningValues.put("lSpdUp",.4);
+    tuningValues.put("lSpdUp",.8);
     tuningValues.put("lSpdDow",.8);
     tuningValues.put("eSpdJ",.6);
     tuningValues.put("aSpd",.2);
@@ -148,25 +152,31 @@ public class Robot extends TimedRobot {
     tuningValues.put("eI",elevator.getPIDController().getI());
     tuningValues.put("eD",elevator.getPIDController().getD());
     tuningValues.put("eFF", elevator.getPIDController().getFF());
+    Thread.currentThread().setName("Main Loop");
+    
     climbing=false;
-    diskPush=new Solenoid(0){
-      /**Inverts this solenoid. Fix for other robot
+    diskPush=new Solenoid(0)//{
+      /**Inverts this solenoid. Fix for main robot
        * 
        * TEMPORARY FIX
        * 
-       */
+       *//*
       @Override
       public void set(boolean on){
         super.set(!on);
       }
-    };
-
+    }*/;
     diskBlowoff=new Solenoid(1);
+    green=new Solenoid(5);
+    red=new Solenoid(6);
+    blue=new Solenoid(7);
+    
+    
     compressor=new Compressor(0); //DOUBLE CHECK IDS
   }
   @Override
   public void teleopInit() {
-    
+    green.set(false);
     if (!(tsbAdapter==null)){
       tsbAdapter.setMode(TSBAdapter.Mode.RobotResponse);
     }
@@ -180,13 +190,13 @@ public class Robot extends TimedRobot {
     if (!(tsbAdapter==null)){
       tsbAdapter.setMode(TSBAdapter.Mode.RobotResponse);
     }
+    green.set(false);
     setVaccum(true);
     elevatorHatch();
-    pushSuckers(true);
     eHandler.triggerEvent(new Event(new Runnable(){
       @Override
       public void run(){
-        armHatch();
+        arm.moveToPos(tuningValues.get("aHat")/4, tuningValues.get("aSpd"));
       }
     },200));
   }
@@ -198,7 +208,8 @@ public class Robot extends TimedRobot {
   private void periodic(){
     //driving arcade
     if (!climbing){
-      robot.arcadeDrive(-xStick.getX()*.75,rightStick.getY()*.75); 
+      //robot.arcadeDrive(rightStick.getY()*-.75,xStick.getX()*.75);
+      robot.arcadeDrive(xStick.getX()*-.75,rightStick.getY()*.75); 
     } else {
       robot.arcadeDrive(-leftStick.getY()*.75, 0);
     }
@@ -262,11 +273,11 @@ public class Robot extends TimedRobot {
     if (!(tsbAdapter==null)){
       tsbAdapter.setMode(TSBAdapter.Mode.Tune);
     }
+    
     //vaccum.set(ControlMode.PercentOutput, 1);
   }
   @Override
   public void disabledPeriodic() {
-    //tsbAdapter.update();
   }
 
   //CLIMBING
@@ -346,7 +357,7 @@ public class Robot extends TimedRobot {
     if (!on){
       vaccum.set(ControlMode.PercentOutput,0);
     } else {
-      vaccum.set(ControlMode.PercentOutput,.5);
+      vaccum.set(ControlMode.PercentOutput,.6);
     }
     //solenoidActivationTime=System.currentTimeMillis();
   }
@@ -397,14 +408,16 @@ public class Robot extends TimedRobot {
       return;
     }
     elevator.moveToPos(elevator.getEncoder().getPosition(),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"),0);
+    //elevator.off();
   }
 
   public void elevatorHoldPosOR(){
     if(elevator.getOutputCurrent()>0){
-      elevator.moveToPos(elevator.getEncoder().getPosition()+tuningValues.get("ePIDORUp"),1);
+      elevator.moveToPos(elevator.getEncoder().getPosition()+tuningValues.get("ePIDORUp"),0);
     } else {
-      elevator.moveToPos(elevator.getEncoder().getPosition()-tuningValues.get("ePIDORDow"),1);      
+      elevator.moveToPos(elevator.getEncoder().getPosition()-tuningValues.get("ePIDORDow"),0);      
     }
+    //elevator.off();
   }
   
   public void elevatorJoystick(){
@@ -429,6 +442,7 @@ public class Robot extends TimedRobot {
     elevator.moveToPos(tuningValues.get("eMid"),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"),1);
   }
 
+  @Deprecated
   public void elevatorSmartMid(){
     elevator.smartPos(tuningValues.get("eMid"));
   }
@@ -459,6 +473,7 @@ public class Robot extends TimedRobot {
 
   //LIFT CONTROL METHODS
 
+  @Deprecated
   /**Moves lift up
    * 
    */
@@ -466,31 +481,36 @@ public class Robot extends TimedRobot {
     rearLift.up(tuningValues.get("lSpdUp"));
   }
   
+  @Deprecated
   /**Moves lift down
    * 
    */
   public void liftDown(){
     rearLift.down(tuningValues.get("lSpdDow"));
   }
+
   public void liftHoldPos(){
     rearLift.moveToPos(rearLift.getEncoder().getPosition());
   }
+  
+  @Deprecated
   public void liftHoldPosOR(){
-    /*if(rearLift.getOutputCurrent()>0){
+    if(rearLift.getOutputCurrent()>0){
       rearLift.moveToPos(rearLift.getEncoder().getPosition()+tuningValues.get("lPIDOR"));
     } else {
       rearLift.moveToPos(rearLift.getEncoder().getPosition()-tuningValues.get("lPIDOR"));
-    }*/
+    }
   }
+  
   /**Moves lift to raised position
    * 
    */
   public void liftRaise(){
-    //rearLift.moveToPos(tuningValues.get("lTop"),tuningValues.get("lSpdUp"));
+    rearLift.moveToPos(tuningValues.get("lTop"),tuningValues.get("lSpdUp"));
   }
 
   public void liftLower(){
-    //rearLift.moveToPos(tuningValues.get("lBot"),tuningValues.get("lSpdUp"));
+    rearLift.moveToPos(tuningValues.get("lBot"),tuningValues.get("lSpdUp"));
   }
   /**Turns lift off
    * 
