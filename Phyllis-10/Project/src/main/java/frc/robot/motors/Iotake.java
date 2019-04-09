@@ -65,6 +65,8 @@ public class Iotake {
         right.setNeutralMode(NeutralMode.Brake);
         this.defaultDemand=defaultDemand;
         state = State.off;
+        left.setInverted(true);
+        right.setInverted(true);
     }
     /**Sets default demand of motor
      * 
