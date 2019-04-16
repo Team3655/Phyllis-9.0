@@ -168,6 +168,13 @@ public class Lift extends CANSparkMax{
         state=State.activePID;
         p.setReference(pos,ControlType.kPosition);
     }
+    public void moveToPos(double pos,double demandDown,double demandUp){
+        set(0);
+        targetPosition=pos;
+        p.setOutputRange(-1*Math.abs(demandDown), Math.abs(demandUp));
+        state=State.activePID;
+        p.setReference(pos,ControlType.kPosition);
+    }
     
     public void printSensorPosition(){
         Robot.eHandler.triggerEvent(new PrintEvent("Sensor Position: "+getEncoder().getPosition()));

@@ -96,6 +96,10 @@ public class TSBAdapter extends ButtonHandler{
                     case 9:
                         robot.liftLower();
                     break;
+                    //button 10 moves lift down slowly <99>
+                    case 10:
+                        robot.liftLowerSlow();
+                    break;
                     //button 5 turns lift off (coast mode) <|108|>
                     case 5:
                         robot.liftOff();    

@@ -12,7 +12,7 @@ import frc.robot.Robot;
 /**
  * Handles button presses without commands (specify actions in an extended class)
  */
-public abstract class ButtonHandler extends Thread{
+public abstract class ButtonHandler /*extends Thread*/{
     private boolean enabled;
     private GenericHID buttonInterface;
     private int buttonNo;
@@ -22,14 +22,14 @@ public abstract class ButtonHandler extends Thread{
      * @param buttonNo Number of buttons on button interface
      */
     public ButtonHandler(GenericHID buttonInterface,int buttonNo){
-        this.setName(this.getClass().toString());
+        //this.setName(this.getClass().toString());
         this.buttonInterface=buttonInterface;
         this.buttonNo=buttonNo;
         enabled=true;
-        start();
+        //start();
     }
 
-    @Override
+    /*@Override
     public void run(){
         while (enabled){
             try {
@@ -40,7 +40,7 @@ public abstract class ButtonHandler extends Thread{
             }
             update();
         }
-    }
+    }*/
     /**Call during a periodic function in order to regocnize button events
      * 
     */
