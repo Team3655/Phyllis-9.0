@@ -269,9 +269,9 @@ public class TSBAdapter extends ButtonHandler{
                         robot.setTuningValue("eBot",0.0);
                         robot.setTuningValue("eMid",34.69);
                         robot.setTuningValue("eCar",27.47599);
-                        robot.setTuningValue("eHat",3.88);
+                        robot.setTuningValue("eHat",3.21);
                         robot.setTuningValue("aCar",-25.30935);
-                        robot.setTuningValue("aHat",-8.88);
+                        robot.setTuningValue("aHat",-7.71);
                         robot.setTuningValue("aBal",-27.66);
                         robot.setTuningValue("aSit",-.1);
                         robot.setTuningValue("aDec",-.1);
@@ -289,8 +289,8 @@ public class TSBAdapter extends ButtonHandler{
                         robot.setTuningValue("eSpdDow",.2);
                         robot.setTuningValue("lSpdRPM", 645);
                         robot.setTuningValue("lAclRPMS", 645);
-                        robot.setTuningValue("lSpdUp",.4);
-                        robot.setTuningValue("lSpdDow",.8);
+                        robot.setTuningValue("lSpdUp",.8);
+                        robot.setTuningValue("lSpdDow",.4);
                         robot.setTuningValue("eSpdJ",.6);
                         robot.setTuningValue("aSpd",.2);
                         robot.setTuningValue("aSpdJ",.75);

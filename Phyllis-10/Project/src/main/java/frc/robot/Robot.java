@@ -152,6 +152,7 @@ public class Robot extends TimedRobot {
     tuningValues.put("eI",elevator.getPIDController().getI());
     tuningValues.put("eD",elevator.getPIDController().getD());
     tuningValues.put("eFF", elevator.getPIDController().getFF());
+    
     Thread.currentThread().setName("Main Loop");
     
     climbing=false;
@@ -171,6 +172,9 @@ public class Robot extends TimedRobot {
     red=new Solenoid(6);
     blue=new Solenoid(7);
     
+    tsbAdapter.setMode(TSBAdapter.Mode.Tune);
+    tsbAdapter.simButtonPress(24); //This sets default values to test robot -- REMOVE FOR COMPETITION!!!!
+    tsbAdapter.simButtonPress(28);
     
     compressor=new Compressor(0); //DOUBLE CHECK IDS
   }
@@ -212,8 +216,8 @@ public class Robot extends TimedRobot {
     }
     //driving arcade
     if (!climbing){
-      robot.arcadeDrive(rightStick.getY()*-.8,xStick.getX()*.8);
-      //robot.arcadeDrive(xStick.getX()*-.75,rightStick.getY()*.75); 
+      //robot.arcadeDrive(rightStick.getY()*-.8,xStick.getX()*.8);
+      robot.arcadeDrive(xStick.getX()*-.75,rightStick.getY()*.75); 
     } else {
       robot.arcadeDrive(-leftStick.getY()*.75, 0);
     }
