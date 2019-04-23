@@ -129,12 +129,12 @@ public class Robot extends TimedRobot {
 
     tuningValues.put("eSpdRPM",922.99);
     tuningValues.put("eAclRPMS",922.99);
-    tuningValues.put("eSpdUp",.3);
+    tuningValues.put("eSpdUp",.9);
     tuningValues.put("eSpdDow",.2);
     tuningValues.put("lSpdRPM",645.0);
     tuningValues.put("lAclRPMS",645.0);
-    tuningValues.put("lSpdUp",.5);
-    tuningValues.put("lSpdDow",.9);
+    tuningValues.put("lSpdUp",.8);
+    tuningValues.put("lSpdDow",.4);
     tuningValues.put("eSpdJ",.6);
     tuningValues.put("aSpd",.2);
     tuningValues.put("aSpdJ",.75);
@@ -217,7 +217,7 @@ public class Robot extends TimedRobot {
     //driving arcade
     if (!climbing){
       //robot.arcadeDrive(rightStick.getY()*-.8,xStick.getX()*.8);
-      robot.arcadeDrive(xStick.getX()*-.75,rightStick.getY()*.75); 
+      robot.arcadeDrive(xStick.getX()*-.6,rightStick.getY()*.75); 
     } else {
       robot.arcadeDrive(-leftStick.getY()*.75, 0);
     }
@@ -419,12 +419,16 @@ public class Robot extends TimedRobot {
     elevator.moveToPos(tuningValues.get("eHat"), tuningValues.get("eSpdDow"), tuningValues.get("eSpdUp"),1);
   }
 
+  public double elevatorPos(){
+    return elevator.getEncoder().getPosition();
+  }
+
   public void elevatorHoldPos(){
     if (elevator.getEncoder().getPosition()<.8){
       elevator.off();
       return;
     }
-    elevator.moveToPos(elevator.getEncoder().getPosition(),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"),0);
+    elevator.moveToPos(elevator.getEncoder().getPosition(),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp")+.2,0);
     //elevator.off();
   }
 
@@ -451,7 +455,8 @@ public class Robot extends TimedRobot {
   }
 
   public void elevatorBottom(){
-    elevator.moveToPos(tuningValues.get("eBot"),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"),1);
+    //elevator.moveToPos(tuningValues.get("eBot"),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"),1);
+    elevator.moveToPos(tuningValues.get("eHat"),tuningValues.get("eSpdDow"),tuningValues.get("eSpdUp"),1);
   }
   
   /**Moves elevator to middle possition

@@ -70,7 +70,7 @@ public class TSBAdapter extends ButtonHandler{
 
 
                 //<<ELEVATOR BUTTONS>>\\
-                    /*
+                    
                     //button 1 moves elevator to top position <|75|>
                     case 1:
                         robot.elevatorTop();
@@ -83,9 +83,9 @@ public class TSBAdapter extends ButtonHandler{
                     break;
                     //button 3 moves elevator to hatch/bottom position <|85|>
                     case 3:
-                        robot.elevatorHatch();
+                        robot.elevatorBottom();
                         elevatorControlMode=ControlMode.PID;
-                    break;*/
+                    break;
 
                 //LIFT BUTTONS
                     //button 4 moves lift up <|100|>
@@ -190,9 +190,6 @@ public class TSBAdapter extends ButtonHandler{
                     //button 28 switches to tuning mode <|186|>
                     case 28:
                         mode=Mode.Tune;
-                        Robot.getInstance().red.set(true);
-                        Robot.getInstance().green.set(true);
-                        Robot.getInstance().blue.set(false);
                         Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'Tune'"));
                     break;
             }
@@ -200,7 +197,7 @@ public class TSBAdapter extends ButtonHandler{
             if (no<10){
                 inputCache=inputCache+no;
                 Robot.eHandler.triggerEvent(new PrintEvent("Input Cache: "+inputCache));
-            } else {
+            } else if (no<28) {
                 switch (no){
                     case 10:
                         inputCache=inputCache+0;
@@ -217,6 +214,15 @@ public class TSBAdapter extends ButtonHandler{
                         if (!inputCache.contains(".")){
                             inputCache=inputCache+".";
                             Robot.eHandler.triggerEvent(new PrintEvent("Input Cache: "+inputCache));
+                        }
+                    break;
+                    case 15:
+                        if (getButtonDown(28)){
+                            robot.setTuningValue("eHat", robot.elevatorPos());
+                            if (robot.isEnabled()){
+                                mode=Mode.RobotResponse;
+                                Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'RobotResponse'"));
+                            }
                         }
                     break;
                     case 17:
@@ -265,9 +271,9 @@ public class TSBAdapter extends ButtonHandler{
                         robot.printSensorPositions();
                     break;
                     case 24:
-                        robot.setTuningValue("eTop",44.83285);
+                        robot.setTuningValue("eTop",60.26);
                         robot.setTuningValue("eBot",0.0);
-                        robot.setTuningValue("eMid",34.69);
+                        robot.setTuningValue("eMid",32.42);
                         robot.setTuningValue("eCar",27.47599);
                         robot.setTuningValue("eHat",3.21);
                         robot.setTuningValue("aCar",-25.30935);
@@ -338,28 +344,17 @@ public class TSBAdapter extends ButtonHandler{
                             System.err.println("Print failed to queue");
                         }
                     break;
-                    case 28:
-                        if (robot.isEnabled()){
-                            mode=Mode.RobotResponse;
-                            Robot.getInstance().red.set(false);
-                            Robot.getInstance().green.set(false);
-                            Robot.getInstance().blue.set(false);
-                            Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'RobotResponse'"));
-                        } else {
-                            Robot.getInstance().red.set(true);
-                            Robot.getInstance().green.set(false);
-                            Robot.getInstance().blue.set(false);
-                            Robot.eHandler.triggerEvent(new Event(new Runnable(){
-                                @Override
-                                public void run(){
-                                    Robot.getInstance().red.set(true);
-                                    Robot.getInstance().green.set(true);
-                                    Robot.getInstance().blue.set(false);
-                                }
-                            },500));
-                            Robot.eHandler.triggerEvent(new PrintEvent("RobotResponse mode not available while robot is disabled",true));
-                        }
-                    break;
+                }
+             } else {
+                switch (no){
+                case 28:
+                    if (robot.isEnabled()){
+                        mode=Mode.RobotResponse;
+                        Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'RobotResponse'"));
+                    } else {
+                        Robot.eHandler.triggerEvent(new PrintEvent("RobotResponse mode not available while robot is disabled",true));
+                    }
+                break;
                 }
             }
         }/* else {
