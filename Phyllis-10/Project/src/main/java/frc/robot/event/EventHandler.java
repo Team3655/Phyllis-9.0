@@ -34,6 +34,11 @@ public class EventHandler extends Thread{
                     activeSequences.remove(e);
                 }
             }
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e){
+
+            }
         }
     }
     /**Adds an event to the event queue

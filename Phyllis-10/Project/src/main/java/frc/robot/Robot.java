@@ -36,7 +36,8 @@ public class Robot extends TimedRobot {
   
   
   //CLASS VARIABLES
-
+  public static long MatchStartTime;
+  private boolean dispClimbTime;
   public static enum driveType {twoJoyStick,oneJoystick,climbing};
   public static EventHandler eHandler=new EventHandler();
   private final double voltageCutoff=8.5;
@@ -109,13 +110,13 @@ public class Robot extends TimedRobot {
     jsbAdapter=new JSBAdapter(rightStick, this);
     tsbAdapter=new TSBAdapter(tractorPanel, this);
     tuningValues=new Hashtable<>();
-    tuningValues.put("eTop",44.83285);
+    tuningValues.put("eTop",48.047);
     tuningValues.put("eBot",0.0);
-    tuningValues.put("eMid",22.6903);
+    tuningValues.put("eMid",26.047);
     tuningValues.put("eCar",27.47599);
-    tuningValues.put("eHat",-0.0);
+    tuningValues.put("eHat",3.33);
     tuningValues.put("aCar",-25.30935);
-    tuningValues.put("aHat",-19.04);
+    tuningValues.put("aHat",-26.029);
     tuningValues.put("aBal",-27.85693);
     tuningValues.put("aSit",.1);
     tuningValues.put("aDec",.1);
@@ -133,12 +134,12 @@ public class Robot extends TimedRobot {
     tuningValues.put("eSpdDow",.2);
     tuningValues.put("lSpdRPM",645.0);
     tuningValues.put("lAclRPMS",645.0);
-    tuningValues.put("lSpdUp",.8);
-    tuningValues.put("lSpdDow",.4);
-    tuningValues.put("eSpdJ",.6);
+    tuningValues.put("lSpdUp",.4);
+    tuningValues.put("lSpdDow",.8);
+    tuningValues.put("eSpdJ",.7);
     tuningValues.put("aSpd",.2);
     tuningValues.put("aSpdJ",.75);
-    tuningValues.put("iSpd",.8);
+    tuningValues.put("iSpd",1.0);
 
     tuningValues.put("eCurUp",52.0);
     tuningValues.put("eCurDow", 8.0);
@@ -153,6 +154,8 @@ public class Robot extends TimedRobot {
     tuningValues.put("eD",elevator.getPIDController().getD());
     tuningValues.put("eFF", elevator.getPIDController().getFF());
     
+    dispClimbTime=true;
+
     Thread.currentThread().setName("Main Loop");
     
     climbing=false;
@@ -172,9 +175,9 @@ public class Robot extends TimedRobot {
     red=new Solenoid(6);
     blue=new Solenoid(7);
     
-    tsbAdapter.setMode(TSBAdapter.Mode.Tune);
+    /*tsbAdapter.setMode(TSBAdapter.Mode.Tune);
     tsbAdapter.simButtonPress(24); //This sets default values to test robot -- REMOVE FOR COMPETITION!!!!
-    tsbAdapter.simButtonPress(28);
+    tsbAdapter.simButtonPress(28);//*/
     
     compressor=new Compressor(0); //DOUBLE CHECK IDS
   }
@@ -191,6 +194,7 @@ public class Robot extends TimedRobot {
   }
   @Override
   public void autonomousInit() {
+    MatchStartTime=System.currentTimeMillis();
     if (!(tsbAdapter==null)){
       tsbAdapter.setMode(TSBAdapter.Mode.RobotResponse);
     }
@@ -216,8 +220,8 @@ public class Robot extends TimedRobot {
     }
     //driving arcade
     if (!climbing){
-      //robot.arcadeDrive(rightStick.getY()*-.8,xStick.getX()*.8);
-      robot.arcadeDrive(xStick.getX()*-.6,rightStick.getY()*.75); 
+      robot.arcadeDrive(rightStick.getY()*-.75,xStick.getX()*.6);
+      //robot.arcadeDrive(xStick.getX()*-.6,rightStick.getY()*.75); 
     } else {
       robot.arcadeDrive(-leftStick.getY()*.75, 0);
     }
@@ -264,15 +268,18 @@ public class Robot extends TimedRobot {
       armOff();
       eHandler.triggerEvent(new PrintEvent("Arm disabled from high output current of "+armCurrent,true));
     }
-    //stop intake at voltage spike
+    //stop intake at current spike
     //currently testing at 500 milliseconds (.5 seconds) after motor activation/directional change invocation
-    //no abs value needed for this one because outtake doesn't need to be ended at a voltage spike
-    if (iotake.getState()==Iotake.State.activeIn&&iotake.getOutputCurrent()>25 && System.currentTimeMillis()>iotake.getActivationTime()+500){
+    /*When uncommented current limits intake*/ /*if (iotake.getState()==Iotake.State.activeIn&&iotake.getOutputCurrent()>25 && System.currentTimeMillis()>iotake.getActivationTime()+500){
       iotakeOff();
       eHandler.triggerEvent(new PrintEvent("Intake disabled from high output current",true));
-    }
+    }*/
     if (vaccum.getOutputCurrent()>10){
       vaccum.set(ControlMode.PercentOutput, .3);
+    }
+    if (dispClimbTime&&System.currentTimeMillis()-MatchStartTime>135000l){
+      eHandler.triggerEvent(new PrintEvent("<<<<<<<<<[[[[[[[>>>>>-<||CLIMB TIME||>-<<<<<]]]]]]>>>>>>>>>",true));
+      dispClimbTime=false;
     }
     //debug();
   }
@@ -281,7 +288,9 @@ public class Robot extends TimedRobot {
     if (!(tsbAdapter==null)){
       tsbAdapter.setMode(TSBAdapter.Mode.Tune);
     }
-    
+    for (String key:tuningValues.keySet()){
+      eHandler.triggerEvent(new PrintEvent(key+": "+tuningValues.get(key),true));
+    }
     //vaccum.set(ControlMode.PercentOutput, 1);
   }
   @Override
@@ -609,7 +618,7 @@ public class Robot extends TimedRobot {
    * 
    */
   public void outtake(){
-    iotake.outtake(.5);
+    iotake.outtake(.75);
   }
 
   /**Activates outtake
@@ -687,6 +696,7 @@ public class Robot extends TimedRobot {
     eHandler.triggerEvent(new PrintEvent("Left: "+leftFrontCAN.getAppliedOutput());
     eHandler.triggerEvent(new PrintEvent("Right: "+rightFrontCAN.getAppliedOutput());*/
   }
+  
 
 
   public static Robot getInstance(){

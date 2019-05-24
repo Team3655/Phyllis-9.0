@@ -124,7 +124,6 @@ public class TSBAdapter extends ButtonHandler{
                         armControlMode=ControlMode.PID;
                     break;
 
-
                 //<<OUTTAKE>>\\
 
                 //button 17 soft outtake <|133|>
@@ -195,8 +194,31 @@ public class TSBAdapter extends ButtonHandler{
             }
         } else if (mode==Mode.Tune) {
             if (no<10){
-                inputCache=inputCache+no;
+                if (!this.getButtonDown(27)){
+                    inputCache=inputCache+no;
                 Robot.eHandler.triggerEvent(new PrintEvent("Input Cache: "+inputCache));
+                } else {
+                    if (no==1){
+                        robot.setTuningValue("eTop", robot.elevatorPos());
+                        if (robot.isEnabled()){
+                            mode=Mode.RobotResponse;
+                            Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'RobotResponse'"));
+                        }
+                    } else if (no==2){
+                        robot.setTuningValue("eMid", robot.elevatorPos());
+                        if (robot.isEnabled()){
+                            mode=Mode.RobotResponse;
+                            Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'RobotResponse'"));
+                        }
+                    } else if (no==3){
+                        robot.setTuningValue("eHat", robot.elevatorPos());
+                        if (robot.isEnabled()){
+                            mode=Mode.RobotResponse;
+                            Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'RobotResponse'"));
+                        }
+                    }
+                }
+                
             } else if (no<28) {
                 switch (no){
                     case 10:
@@ -216,6 +238,15 @@ public class TSBAdapter extends ButtonHandler{
                             Robot.eHandler.triggerEvent(new PrintEvent("Input Cache: "+inputCache));
                         }
                     break;
+                    case 13:
+                        if (getButtonDown(28)){
+                            robot.setTuningValue("aHat", robot.elevatorPos());
+                            if (robot.isEnabled()){
+                                mode=Mode.RobotResponse;
+                                Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'RobotResponse'"));
+                            }
+                        }
+                    break;
                     case 15:
                         if (getButtonDown(28)){
                             robot.setTuningValue("eHat", robot.elevatorPos());
@@ -224,6 +255,15 @@ public class TSBAdapter extends ButtonHandler{
                                 Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'RobotResponse'"));
                             }
                         }
+                    break;
+                    case 16:
+                    if (getButtonDown(28)){
+                        robot.setTuningValue("aBal", robot.elevatorPos());
+                        if (robot.isEnabled()){
+                            mode=Mode.RobotResponse;
+                            Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'RobotResponse'"));
+                        }
+                    }
                     break;
                     case 17:
                         if (!inputCache.contains("-")){
