@@ -1,0 +1,20 @@
+INDEX VERSION 1.127+C:\Users\Keegan\Documents\GitHub\Phyllis-10.0\.metadata\.plugins\org.eclipse.jdt.core
+722431937.index
+536070853.index
+3496484731.index
+3354000293.index
+4108459353.index
+1426603522.index
+1973531256.index
+2708475636.index
+2556977962.index
+793596645.index
+1201542483.index
+1049084336.index
+3671920794.index
+1115984512.index
+2650673380.index
+392166537.index
+964550312.index
+297567699.index
+737580916.index

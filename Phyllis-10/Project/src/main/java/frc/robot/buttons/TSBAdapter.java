@@ -21,7 +21,7 @@ public class TSBAdapter extends ButtonHandler{
     private ControlMode elevatorControlMode;
     private ControlMode armControlMode;
     private Mode mode;
-    private String[] tuningValues={"eTop","eBot","eMid","eCar","eHat","aCar","aHat","aBal","aSit","aDec","lTop","lBot","aPIDOR","lPIDOR","ePIDORUp","ePIDORDow","eSpdRPM","eAclRPMS","eSpdUp","eSpdDow","lSpdRPM","lAclRPMS","lSpdUp","lSpdDow","eSpdJ","aSpd","aSpdJ","iSpd","eCurUp","eCurDow","eCurPID","eCurJoy","lCur","aCur","eErr","eP","eI","eD","eFF"};
+    private String[] tuningValues={"eTop","eBot","eMid","eCar","eHat","aCar","aHat","aBal","aSit","aDec","lTop","lBot","aPIDOR","lPIDOR","ePIDORUp","ePIDORDow","eSpdRPM","eAclRPMS","eSpdUp","eSpdDow","lSpdRPM","lAclRPMS","lSpdUp","lSpdDow","eSpdJ","aSpd","aSpdJ","iSpd","eCurUp","eCurDow","eCurPID","eCurJoy","lCur","aCur","eErr","eP","eI","eD","eFF","port"};
     private int currentPropertyNo;
     private String currentTuningValue;
     private String inputCache;
@@ -98,7 +98,7 @@ public class TSBAdapter extends ButtonHandler{
                     break;
                     //button 10 moves lift down slowly <99>
                     case 10:
-                        robot.liftLowerSlow();
+                        robot.liftLower();
                     break;
                     //button 5 turns lift off (coast mode) <|108|>
                     case 5:
@@ -354,6 +354,7 @@ public class TSBAdapter extends ButtonHandler{
                         robot.setTuningValue("eI", 0);
                         robot.setTuningValue("eD", 0);
                         robot.setTuningValue("eFF", 0);
+                        robot.setTuningValue("port", 7001);
                         robot.elevatorPID(robot.getTuningValue("eP"), robot.getTuningValue("eI"), robot.getTuningValue("eD"),robot.getTuningValue("eFF"));
                         Robot.eHandler.triggerEvent(new PrintEvent("TUNING VALUES SET TO TEST ROBOT"));
                     break;
@@ -363,7 +364,7 @@ public class TSBAdapter extends ButtonHandler{
                     //button 26 changes what property you are editing (++)
                     case 27:
                         currentPropertyNo++;
-                        if (currentPropertyNo>38){
+                        if (currentPropertyNo>39){
                             currentPropertyNo=0;
                         }
                         currentTuningValue=tuningValues[currentPropertyNo];
@@ -376,7 +377,7 @@ public class TSBAdapter extends ButtonHandler{
                     case 26:
                         currentPropertyNo--;
                         if (currentPropertyNo<0){
-                            currentPropertyNo=38;
+                            currentPropertyNo=39;
                         }
                         currentTuningValue=tuningValues[currentPropertyNo];
                         //System.out.println("Now edititing "+currentTuningValue);
