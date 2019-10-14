@@ -114,7 +114,7 @@ public class Robot extends TimedRobot {
     tuningValues.put("eBot",0.0);
     tuningValues.put("eMid",26.047);
     tuningValues.put("eCar",27.47599);
-    tuningValues.put("eHat",3.33);
+    tuningValues.put("eHat",5.1428);
     tuningValues.put("aCar",-25.30935);
     tuningValues.put("aHat",-26.029);
     tuningValues.put("aBal",-27.85693);
@@ -611,6 +611,9 @@ public class Robot extends TimedRobot {
     arm.off();
   }
   
+  public double armPos(){
+    return arm.getEncoder().getPosition();
+  }
 
   //IOTAKE CONTROL METHODS
 

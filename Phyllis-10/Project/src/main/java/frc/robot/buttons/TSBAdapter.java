@@ -238,16 +238,16 @@ public class TSBAdapter extends ButtonHandler{
                             Robot.eHandler.triggerEvent(new PrintEvent("Input Cache: "+inputCache));
                         }
                     break;
-                    case 13:
+                    case 15:
                         if (getButtonDown(28)){
-                            robot.setTuningValue("aHat", robot.elevatorPos());
+                            robot.setTuningValue("aHat", robot.armPos());
                             if (robot.isEnabled()){
                                 mode=Mode.RobotResponse;
                                 Robot.eHandler.triggerEvent(new PrintEvent("Mode set to 'RobotResponse'"));
                             }
                         }
                     break;
-                    case 15:
+                    case 13:
                         if (getButtonDown(28)){
                             robot.setTuningValue("eHat", robot.elevatorPos());
                             if (robot.isEnabled()){
